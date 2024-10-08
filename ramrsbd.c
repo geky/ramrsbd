@@ -77,11 +77,23 @@ int ramrsbd_create(const struct lfs_config *cfg,
         }
     }
 
+    // allocate syndrome buffer?
+    if (bd->cfg->syndrome_buffer) {
+        bd->s = bd->cfg->syndrome_buffer;
+    } else {
+        bd->s = lfs_malloc(bd->cfg->ecc_size);
+        if (!bd->s) {
+            RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
+            return LFS_ERR_NOMEM;
+        }
+    }
+
     // calculate generator polynomial
     //
     // p(x) = prod_i^ecc_size{ x - g^i }
     //
     // note this evaluates to 0 at every x=g^i for i < ecc_size
+    //
     
     // let p(x) = 1
     memset(bd->p, 0, bd->cfg->ecc_size);
@@ -114,6 +126,9 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
     if (!bd->cfg->p_buffer) {
         lfs_free(bd->p);
     }
+    if (!bd->cfg->syndrome_buffer) {
+        lfs_free(bd->s);
+    }
     RAMRSBD_TRACE("ramrsbd_destroy -> %d", 0);
     return 0;
 }
@@ -143,6 +158,28 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
         memcpy(bd->m,
                 &bd->buffer[block*bd->cfg->erase_size + off_],
                 bd->cfg->code_size);
+
+        // calculate syndromes
+        bool s_zero = true;
+        for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
+            // let s_i = m(g^i)
+            //
+            // note this should be zero for every g^i if no error is present
+            //
+            bd->s[i] = ramrsbd_gf_p_eval(
+                    bd->m, bd->cfg->code_size,
+                    ramrsbd_gf_pow(RAMRSBD_GF_G, i));
+
+            // keep track of if we have any non-zero syndromes
+            if (bd->s[i] != 0) {
+                s_zero = false;
+            }
+        }
+
+        // non-zero syndromes? errors are present, attempt to correct
+        if (!s_zero) {
+            // TODO
+        }
 
         // copy the data part of our codeword
         memcpy(buffer_, bd->m, bd->cfg->code_size-bd->cfg->ecc_size);

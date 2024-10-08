@@ -66,6 +66,14 @@ struct ramrsbd_config {
     // Must be ecc_size+1.
     void *p_buffer;
 
+    // Optional statically allocated syndrome buffer. This is used to find
+    // error locations.
+    //
+    // TODO can this be smaller if error_correction != 0?
+    //
+    // Must be ecc_size.
+    void *syndrome_buffer;
+
     // Optional statically allocated buffer for the block device.
     void *buffer;
 };
@@ -79,6 +87,8 @@ typedef struct ramrsbd {
     uint8_t *m;
     // generator polynomial
     uint8_t *p;
+    // syndrome buffer
+    uint8_t *s;
 } ramrsbd_t;
 
 
