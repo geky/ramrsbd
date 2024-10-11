@@ -2,34 +2,37 @@
 #
 
 code = '''
-#include "ramcrc32bd.h"
+#include "ramrsbd.h"
 '''
 
-defines.CODE_SIZE = [16, 256]
+defines.CODE_SIZE = [16, 64, 128]
+defines.ECC_SIZE = [4, 32]
 defines.ERASE_SIZE = 4096
+if = 'ECC_SIZE < CODE_SIZE'
 defines.ERROR_CORRECTION = -1
 
-defines.READ_SIZE = 'CODE_SIZE - sizeof(uint32_t)'
-defines.PROG_SIZE = 'CODE_SIZE - sizeof(uint32_t)'
-defines.BLOCK_SIZE = 'ERASE_SIZE - ((ERASE_SIZE/CODE_SIZE)*sizeof(uint32_t))'
+defines.READ_SIZE = 'CODE_SIZE - ECC_SIZE'
+defines.PROG_SIZE = 'CODE_SIZE - ECC_SIZE'
+defines.BLOCK_SIZE = 'ERASE_SIZE - ((ERASE_SIZE/CODE_SIZE)*ECC_SIZE)'
 
 # test all 1-bit errors
 [cases.test_detection_1_bit_all]
 code = '''
-    ramcrc32bd_t ramcrc32bd;
+    ramrsbd_t ramrsbd;
     struct lfs_config cfg_ = *cfg;
-    cfg_.context = &ramcrc32bd;
-    cfg_.read  = ramcrc32bd_read;
-    cfg_.prog  = ramcrc32bd_prog;
-    cfg_.erase = ramcrc32bd_erase;
-    cfg_.sync  = ramcrc32bd_sync;
-    struct ramcrc32bd_config ramcrc32bdcfg = {
-        .code_size = READ_SIZE+sizeof(uint32_t),
+    cfg_.context = &ramrsbd;
+    cfg_.read  = ramrsbd_read;
+    cfg_.prog  = ramrsbd_prog;
+    cfg_.erase = ramrsbd_erase;
+    cfg_.sync  = ramrsbd_sync;
+    struct ramrsbd_config ramrsbdcfg = {
+        .code_size = CODE_SIZE,
+        .ecc_size = ECC_SIZE,
         .erase_size = ERASE_SIZE,
         .erase_count = ERASE_COUNT,
         .error_correction = ERROR_CORRECTION,
     };
-    ramcrc32bd_create(&cfg_, &ramcrc32bdcfg) => 0;
+    ramrsbd_create(&cfg_, &ramrsbdcfg) => 0;
 
     uint8_t buffer[READ_SIZE];
 
@@ -42,7 +45,7 @@ code = '''
 
     // try flipping each bit
     for (lfs_off_t i = 0; i < 8*CODE_SIZE; i++) {
-        ramcrc32bd.buffer[i/8] ^= 1 << (i%8);
+        ramrsbd.buffer[i/8] ^= 1 << (i%8);
 
         // read data
         int err = cfg_.read(&cfg_, 0, 0, buffer, READ_SIZE);
@@ -56,31 +59,82 @@ code = '''
         }
 
         // undo the bit flip
-        ramcrc32bd.buffer[i/8] ^= 1 << (i%8);
+        ramrsbd.buffer[i/8] ^= 1 << (i%8);
     }
 
-    ramcrc32bd_destroy(&cfg_) => 0;
+    ramrsbd_destroy(&cfg_) => 0;
+'''
+
+# test all 1-byte errors
+[cases.test_detection_1_byte_all]
+code = '''
+    ramrsbd_t ramrsbd;
+    struct lfs_config cfg_ = *cfg;
+    cfg_.context = &ramrsbd;
+    cfg_.read  = ramrsbd_read;
+    cfg_.prog  = ramrsbd_prog;
+    cfg_.erase = ramrsbd_erase;
+    cfg_.sync  = ramrsbd_sync;
+    struct ramrsbd_config ramrsbdcfg = {
+        .code_size = CODE_SIZE,
+        .ecc_size = ECC_SIZE,
+        .erase_size = ERASE_SIZE,
+        .erase_count = ERASE_COUNT,
+        .error_correction = ERROR_CORRECTION,
+    };
+    ramrsbd_create(&cfg_, &ramrsbdcfg) => 0;
+
+    uint8_t buffer[READ_SIZE];
+
+    // write data
+    cfg_.erase(&cfg_, 0) => 0;
+    for (lfs_off_t i = 0; i < READ_SIZE; i++) {
+        buffer[i] = 'a' + (i % 26);
+    }
+    cfg_.prog(&cfg_, 0, 0, buffer, READ_SIZE) => 0;
+
+    // try flipping each bit
+    for (lfs_off_t i = 0; i < CODE_SIZE; i++) {
+        ramrsbd.buffer[i] ^= 0xff;
+
+        // read data
+        int err = cfg_.read(&cfg_, 0, 0, buffer, READ_SIZE);
+        assert(!err || err == LFS_ERR_CORRUPT);
+
+        // we can either correct the error or return LFS_ERR_CORRUPT
+        if (!err) {
+            for (lfs_off_t i = 0; i < READ_SIZE; i++) {
+                LFS_ASSERT(buffer[i] == 'a' + (i % 26));
+            }
+        }
+
+        // undo the bit flip
+        ramrsbd.buffer[i] ^= 0xff;
+    }
+
+    ramrsbd_destroy(&cfg_) => 0;
 '''
 
 # test random 2 bit errors
 [cases.test_detection_2_bits_prng]
-defines.SEED = 42
-defines.N = 10000
+defines.SEED = 'range(10)'
+defines.N = 1000
 code = '''
-    ramcrc32bd_t ramcrc32bd;
+    ramrsbd_t ramrsbd;
     struct lfs_config cfg_ = *cfg;
-    cfg_.context = &ramcrc32bd;
-    cfg_.read  = ramcrc32bd_read;
-    cfg_.prog  = ramcrc32bd_prog;
-    cfg_.erase = ramcrc32bd_erase;
-    cfg_.sync  = ramcrc32bd_sync;
-    struct ramcrc32bd_config ramcrc32bdcfg = {
-        .code_size = READ_SIZE+sizeof(uint32_t),
+    cfg_.context = &ramrsbd;
+    cfg_.read  = ramrsbd_read;
+    cfg_.prog  = ramrsbd_prog;
+    cfg_.erase = ramrsbd_erase;
+    cfg_.sync  = ramrsbd_sync;
+    struct ramrsbd_config ramrsbdcfg = {
+        .code_size = CODE_SIZE,
+        .ecc_size = ECC_SIZE,
         .erase_size = ERASE_SIZE,
         .erase_count = ERASE_COUNT,
         .error_correction = ERROR_CORRECTION,
     };
-    ramcrc32bd_create(&cfg_, &ramcrc32bdcfg) => 0;
+    ramrsbd_create(&cfg_, &ramrsbdcfg) => 0;
 
     uint8_t buffer[READ_SIZE];
 
@@ -96,8 +150,8 @@ code = '''
     for (lfs_size_t i = 0; i < N; i++) {
         lfs_size_t bit0 = TEST_PRNG(&prng) % (8*CODE_SIZE);
         lfs_size_t bit1 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        ramcrc32bd.buffer[bit0/8] ^= 1 << (bit0%8);
-        ramcrc32bd.buffer[bit1/8] ^= 1 << (bit1%8);
+        ramrsbd.buffer[bit0/8] ^= 1 << (bit0%8);
+        ramrsbd.buffer[bit1/8] ^= 1 << (bit1%8);
 
         // read data
         int err = cfg_.read(&cfg_, 0, 0, buffer, READ_SIZE);
@@ -111,32 +165,33 @@ code = '''
         }
 
         // undo the bit flips
-        ramcrc32bd.buffer[bit0/8] ^= 1 << (bit0%8);
-        ramcrc32bd.buffer[bit1/8] ^= 1 << (bit1%8);
+        ramrsbd.buffer[bit0/8] ^= 1 << (bit0%8);
+        ramrsbd.buffer[bit1/8] ^= 1 << (bit1%8);
     }
 
-    ramcrc32bd_destroy(&cfg_) => 0;
+    ramrsbd_destroy(&cfg_) => 0;
 '''
 
-# test random 3 bit errors
-[cases.test_detection_3_bits_prng]
-defines.SEED = 42
-defines.N = 10000
+# test random 2 byte errors
+[cases.test_detection_2_bytes_prng]
+defines.SEED = 'range(10)'
+defines.N = 1000
 code = '''
-    ramcrc32bd_t ramcrc32bd;
+    ramrsbd_t ramrsbd;
     struct lfs_config cfg_ = *cfg;
-    cfg_.context = &ramcrc32bd;
-    cfg_.read  = ramcrc32bd_read;
-    cfg_.prog  = ramcrc32bd_prog;
-    cfg_.erase = ramcrc32bd_erase;
-    cfg_.sync  = ramcrc32bd_sync;
-    struct ramcrc32bd_config ramcrc32bdcfg = {
-        .code_size = READ_SIZE+sizeof(uint32_t),
+    cfg_.context = &ramrsbd;
+    cfg_.read  = ramrsbd_read;
+    cfg_.prog  = ramrsbd_prog;
+    cfg_.erase = ramrsbd_erase;
+    cfg_.sync  = ramrsbd_sync;
+    struct ramrsbd_config ramrsbdcfg = {
+        .code_size = CODE_SIZE,
+        .ecc_size = ECC_SIZE,
         .erase_size = ERASE_SIZE,
         .erase_count = ERASE_COUNT,
         .error_correction = ERROR_CORRECTION,
     };
-    ramcrc32bd_create(&cfg_, &ramcrc32bdcfg) => 0;
+    ramrsbd_create(&cfg_, &ramrsbdcfg) => 0;
 
     uint8_t buffer[READ_SIZE];
 
@@ -147,15 +202,13 @@ code = '''
     }
     cfg_.prog(&cfg_, 0, 0, buffer, READ_SIZE) => 0;
 
-    // try flipping random sets of bits
+    // try flipping random sets of bytes
     uint32_t prng = SEED;
     for (lfs_size_t i = 0; i < N; i++) {
-        lfs_size_t bit0 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        lfs_size_t bit1 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        lfs_size_t bit2 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        ramcrc32bd.buffer[bit0/8] ^= 1 << (bit0%8);
-        ramcrc32bd.buffer[bit1/8] ^= 1 << (bit1%8);
-        ramcrc32bd.buffer[bit2/8] ^= 1 << (bit2%8);
+        lfs_size_t byte0 = TEST_PRNG(&prng) % CODE_SIZE;
+        lfs_size_t byte1 = TEST_PRNG(&prng) % CODE_SIZE;
+        ramrsbd.buffer[byte0] ^= 0xff;
+        ramrsbd.buffer[byte1] ^= 0xff;
 
         // read data
         int err = cfg_.read(&cfg_, 0, 0, buffer, READ_SIZE);
@@ -168,36 +221,36 @@ code = '''
             }
         }
 
-        // undo the bit flips
-        ramcrc32bd.buffer[bit0/8] ^= 1 << (bit0%8);
-        ramcrc32bd.buffer[bit1/8] ^= 1 << (bit1%8);
-        ramcrc32bd.buffer[bit2/8] ^= 1 << (bit2%8);
+        // undo the byte flips
+        ramrsbd.buffer[byte0] ^= 0xff;
+        ramrsbd.buffer[byte1] ^= 0xff;
     }
 
-    ramcrc32bd_destroy(&cfg_) => 0;
+    ramrsbd_destroy(&cfg_) => 0;
 '''
 
-# test random 6 bit errors
-[cases.test_detection_6_bits_prng]
-defines.SEED = 42
-defines.N = 10000
+# test random n/2 bit errors
+[cases.test_detection_nd2_bits_prng]
+defines.SEED = 'range(10)'
+defines.N = 1000
 # this only works up to ~16 byte code words
 if = 'READ_SIZE <= 16'
 code = '''
-    ramcrc32bd_t ramcrc32bd;
+    ramrsbd_t ramrsbd;
     struct lfs_config cfg_ = *cfg;
-    cfg_.context = &ramcrc32bd;
-    cfg_.read  = ramcrc32bd_read;
-    cfg_.prog  = ramcrc32bd_prog;
-    cfg_.erase = ramcrc32bd_erase;
-    cfg_.sync  = ramcrc32bd_sync;
-    struct ramcrc32bd_config ramcrc32bdcfg = {
-        .code_size = READ_SIZE+sizeof(uint32_t),
+    cfg_.context = &ramrsbd;
+    cfg_.read  = ramrsbd_read;
+    cfg_.prog  = ramrsbd_prog;
+    cfg_.erase = ramrsbd_erase;
+    cfg_.sync  = ramrsbd_sync;
+    struct ramrsbd_config ramrsbdcfg = {
+        .code_size = CODE_SIZE,
+        .ecc_size = ECC_SIZE,
         .erase_size = ERASE_SIZE,
         .erase_count = ERASE_COUNT,
         .error_correction = ERROR_CORRECTION,
     };
-    ramcrc32bd_create(&cfg_, &ramcrc32bdcfg) => 0;
+    ramrsbd_create(&cfg_, &ramrsbdcfg) => 0;
 
     uint8_t buffer[READ_SIZE];
 
@@ -211,18 +264,12 @@ code = '''
     // try flipping random sets of bits
     uint32_t prng = SEED;
     for (lfs_size_t i = 0; i < N; i++) {
-        lfs_size_t bit0 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        lfs_size_t bit1 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        lfs_size_t bit2 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        lfs_size_t bit3 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        lfs_size_t bit4 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        lfs_size_t bit5 = TEST_PRNG(&prng) % (8*CODE_SIZE);
-        ramcrc32bd.buffer[bit0/8] ^= 1 << (bit0%8);
-        ramcrc32bd.buffer[bit1/8] ^= 1 << (bit1%8);
-        ramcrc32bd.buffer[bit2/8] ^= 1 << (bit2%8);
-        ramcrc32bd.buffer[bit3/8] ^= 1 << (bit3%8);
-        ramcrc32bd.buffer[bit4/8] ^= 1 << (bit4%8);
-        ramcrc32bd.buffer[bit5/8] ^= 1 << (bit5%8);
+        uint32_t bprng = TEST_PRNG(&prng);
+        uint32_t bprng_ = bprng;
+        for (lfs_size_t j = 0; j < ECC_SIZE/2; j++) {
+            lfs_size_t bit = TEST_PRNG(&bprng_) % (8*CODE_SIZE);
+            ramrsbd.buffer[bit/8] ^= 1 << (bit%8);
+        }
 
         // read data
         int err = cfg_.read(&cfg_, 0, 0, buffer, READ_SIZE);
@@ -236,13 +283,77 @@ code = '''
         }
 
         // undo the bit flips
-        ramcrc32bd.buffer[bit0/8] ^= 1 << (bit0%8);
-        ramcrc32bd.buffer[bit1/8] ^= 1 << (bit1%8);
-        ramcrc32bd.buffer[bit2/8] ^= 1 << (bit2%8);
-        ramcrc32bd.buffer[bit3/8] ^= 1 << (bit3%8);
-        ramcrc32bd.buffer[bit4/8] ^= 1 << (bit4%8);
-        ramcrc32bd.buffer[bit5/8] ^= 1 << (bit5%8);
+        bprng_ = bprng;
+        for (lfs_size_t j = 0; j < ECC_SIZE/2; j++) {
+            lfs_size_t bit = TEST_PRNG(&bprng_) % (8*CODE_SIZE);
+            ramrsbd.buffer[bit/8] ^= 1 << (bit%8);
+        }
     }
 
-    ramcrc32bd_destroy(&cfg_) => 0;
+    ramrsbd_destroy(&cfg_) => 0;
 '''
+
+# test random n/2 byte errors
+[cases.test_detection_nd2_bytes_prng]
+defines.SEED = 'range(10)'
+defines.N = 1000
+# this only works up to ~16 byte code words
+if = 'READ_SIZE <= 16'
+code = '''
+    ramrsbd_t ramrsbd;
+    struct lfs_config cfg_ = *cfg;
+    cfg_.context = &ramrsbd;
+    cfg_.read  = ramrsbd_read;
+    cfg_.prog  = ramrsbd_prog;
+    cfg_.erase = ramrsbd_erase;
+    cfg_.sync  = ramrsbd_sync;
+    struct ramrsbd_config ramrsbdcfg = {
+        .code_size = CODE_SIZE,
+        .ecc_size = ECC_SIZE,
+        .erase_size = ERASE_SIZE,
+        .erase_count = ERASE_COUNT,
+        .error_correction = ERROR_CORRECTION,
+    };
+    ramrsbd_create(&cfg_, &ramrsbdcfg) => 0;
+
+    uint8_t buffer[READ_SIZE];
+
+    // write data
+    cfg_.erase(&cfg_, 0) => 0;
+    for (lfs_off_t i = 0; i < READ_SIZE; i++) {
+        buffer[i] = 'a' + (i % 26);
+    }
+    cfg_.prog(&cfg_, 0, 0, buffer, READ_SIZE) => 0;
+
+    // try flipping random sets of bytes
+    uint32_t prng = SEED;
+    for (lfs_size_t i = 0; i < N; i++) {
+        uint32_t bprng = TEST_PRNG(&prng);
+        uint32_t bprng_ = bprng;
+        for (lfs_size_t j = 0; j < ECC_SIZE/2; j++) {
+            lfs_size_t byte = TEST_PRNG(&bprng_) % CODE_SIZE;
+            ramrsbd.buffer[byte] ^= 0xff;
+        }
+
+        // read data
+        int err = cfg_.read(&cfg_, 0, 0, buffer, READ_SIZE);
+        assert(!err || err == LFS_ERR_CORRUPT);
+
+        // we can either correct the error or return LFS_ERR_CORRUPT
+        if (!err) {
+            for (lfs_off_t i = 0; i < READ_SIZE; i++) {
+                LFS_ASSERT(buffer[i] == 'a' + (i % 26));
+            }
+        }
+
+        // undo the byte flips
+        bprng_ = bprng;
+        for (lfs_size_t j = 0; j < ECC_SIZE/2; j++) {
+            lfs_size_t byte = TEST_PRNG(&bprng_) % CODE_SIZE;
+            ramrsbd.buffer[byte] ^= 0xff;
+        }
+    }
+
+    ramrsbd_destroy(&cfg_) => 0;
+'''
+

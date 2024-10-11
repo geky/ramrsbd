@@ -115,8 +115,8 @@ ifneq ($(PERF),perf)
 PERFFLAGS += --perf-path="$(PERF)"
 endif
 
-TESTFLAGS  += -b
-BENCHFLAGS += -b
+TESTFLAGS  += -B
+BENCHFLAGS += -B
 # forward -j flag
 TESTFLAGS  += $(filter -j%,$(MAKEFLAGS))
 BENCHFLAGS += $(filter -j%,$(MAKEFLAGS))

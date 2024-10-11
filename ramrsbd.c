@@ -56,19 +56,20 @@ int ramrsbd_create(const struct lfs_config *cfg,
     memset(bd->buffer, 0, bd->cfg->erase_size * bd->cfg->erase_count);
 
     // allocate codeword buffer?
-    if (bd->cfg->code_buffer) {
-        bd->m = bd->cfg->code_buffer;
+    if (bd->cfg->math_buffer) {
+        bd->c = (uint8_t*)bd->cfg->math_buffer;
     } else {
-        bd->m = lfs_malloc(bd->cfg->code_size);
-        if (!bd->m) {
+        bd->c = lfs_malloc(bd->cfg->code_size);
+        if (!bd->c) {
             RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
             return LFS_ERR_NOMEM;
         }
     }
 
     // allocate generator polynomial?
-    if (bd->cfg->p_buffer) {
-        bd->p = bd->cfg->p_buffer;
+    if (bd->cfg->math_buffer) {
+        bd->p = (uint8_t*)bd->cfg->math_buffer
+                + bd->cfg->code_size;
     } else {
         bd->p = lfs_malloc(bd->cfg->ecc_size+1);
         if (!bd->p) {
@@ -78,8 +79,10 @@ int ramrsbd_create(const struct lfs_config *cfg,
     }
 
     // allocate syndrome buffer?
-    if (bd->cfg->syndrome_buffer) {
-        bd->s = bd->cfg->syndrome_buffer;
+    if (bd->cfg->math_buffer) {
+        bd->s = (uint8_t*)bd->cfg->math_buffer
+                + bd->cfg->code_size
+                + bd->cfg->ecc_size+1;
     } else {
         bd->s = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
@@ -88,22 +91,67 @@ int ramrsbd_create(const struct lfs_config *cfg,
         }
     }
 
+    // allocate error-locator buffer?
+    if (bd->cfg->math_buffer) {
+        bd->l = (uint8_t*)bd->cfg->math_buffer
+                + bd->cfg->code_size
+                + bd->cfg->ecc_size+1
+                + bd->cfg->ecc_size;
+    } else {
+        bd->l = lfs_malloc(bd->cfg->ecc_size+1);
+        if (!bd->s) {
+            RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
+            return LFS_ERR_NOMEM;
+        }
+    }
+
+    // allocate error-evaluator buffer?
+    if (bd->cfg->math_buffer) {
+        bd->e = (uint8_t*)bd->cfg->math_buffer
+                + bd->cfg->code_size
+                + bd->cfg->ecc_size+1
+                + bd->cfg->ecc_size
+                + bd->cfg->ecc_size+1;
+    } else {
+        bd->e = lfs_malloc(bd->cfg->ecc_size);
+        if (!bd->s) {
+            RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
+            return LFS_ERR_NOMEM;
+        }
+    }
+
+    // allocate error-locator derivative buffer?
+    if (bd->cfg->math_buffer) {
+        bd->l_ = (uint8_t*)bd->cfg->math_buffer
+                + bd->cfg->code_size
+                + bd->cfg->ecc_size+1
+                + bd->cfg->ecc_size
+                + bd->cfg->ecc_size+1
+                + bd->cfg->ecc_size;
+    } else {
+        bd->l_ = lfs_malloc(bd->cfg->ecc_size+1);
+        if (!bd->s) {
+            RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
+            return LFS_ERR_NOMEM;
+        }
+    }
+
     // calculate generator polynomial
     //
-    // p(x) = prod_i^ecc_size{ x - g^i }
+    // P(x) = prod_i^ecc_size { x - g^i }
     //
     // note this evaluates to 0 at every x=g^i for i < ecc_size
     //
     
-    // let p(x) = 1
+    // let P(x) = 1
     memset(bd->p, 0, bd->cfg->ecc_size);
     bd->p[bd->cfg->ecc_size] = 1;
 
     for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
-        // let r(x) = x + g^i
+        // let R(x) = x + g^i
         uint8_t r[2] = {1, ramrsbd_gf_pow(RAMRSBD_GF_G, i)};
 
-        // let p'(x) = p(x) * r(x)
+        // let P'(x) = P(x) * R(x)
         ramrsbd_gf_p_mul(
                 bd->p, bd->cfg->ecc_size+1,
                 r, 2);
@@ -120,17 +168,167 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
     if (!bd->cfg->buffer) {
         lfs_free(bd->buffer);
     }
-    if (!bd->cfg->code_buffer) {
-        lfs_free(bd->m);
-    }
-    if (!bd->cfg->p_buffer) {
+    if (!bd->cfg->math_buffer) {
+        lfs_free(bd->c);
         lfs_free(bd->p);
-    }
-    if (!bd->cfg->syndrome_buffer) {
         lfs_free(bd->s);
+        lfs_free(bd->l);
+        lfs_free(bd->e);
+        lfs_free(bd->l_);
     }
     RAMRSBD_TRACE("ramrsbd_destroy -> %d", 0);
     return 0;
+}
+
+// find a set of syndromes, S, of a codeword C(x)
+//
+// S_i = C(g^i)
+//
+// also returns true if zero for convenience
+static bool ramrsbd_find_s(
+        uint8_t *s, lfs_size_t s_size,
+        const uint8_t *c, lfs_size_t c_size) {
+    // calculate syndromes
+    bool s_zero = true;
+    for (lfs_size_t i = 0; i < s_size; i++) {
+        // let S_i = C(g^i)
+        //
+        // note that because C(x) is a multiple of P(x), and P(x) is zero
+        // at every x=g^i for i < ecc_size, this should also be zero
+        // if no errors are present
+        //
+        s[i] = ramrsbd_gf_p_eval(
+                c, c_size,
+                ramrsbd_gf_pow(RAMRSBD_GF_G, s_size-1-i));
+
+        // keep track of if we have any non-zero syndromes
+        if (s[i] != 0) {
+            s_zero = false;
+        }
+    }
+
+    return s_zero;
+}
+
+// find the error-locator polynomial, L(x), given a set of syndromes, S
+//
+// L(x) = prod_i=0^n { 1 - X_i x }
+//
+// also returns the number of errors for convenience
+static lfs_size_t ramrsbd_find_l(
+        uint8_t *l, lfs_size_t l_size,
+        uint8_t *l_, lfs_size_t l__size,
+        const uint8_t *s, lfs_size_t s_size) {
+    LFS_ASSERT(l_size == l__size);
+    // TODO can this be relaxed?
+    LFS_ASSERT(l_size == s_size+1);
+
+    // iteratively find the error-locator using Berlekamp-Massey
+    //
+
+    // guess an error-locator
+    //
+    // let L(x)  = 1
+    // let L'(x) = 1
+    //
+    memset(l, 0, l_size-1);
+    l[l_size-1] = 1;
+    memcpy(l_, l, l_size);
+
+    // guess a number of errors
+    //
+    // let n = 0
+    //
+    lfs_size_t n = 0;
+
+    // iterate through syndromes
+    for (lfs_size_t i = 0; i < s_size; i++) {
+        // calculate syndrome discrepancy
+        //
+        // let delta = S_i + sum_j=1^n { L_j S_i-j }
+        //
+        uint8_t delta = s[s_size-1-i];
+        for (lfs_size_t j = 1; j <= n; j++) {
+            delta ^= ramrsbd_gf_mul(l[l_size-1-j], s[s_size-1-(i-j)]);
+        }
+
+        // let L'(x) = L'(x) x
+        memmove(l_, l_+1, l_size-1);
+        l_[l_size-1] = 0;
+
+        // found discrepancy?
+        if (delta != 0) {
+            // not enough errors for discrepancy?
+            if (i >= 2*n) {
+                // swap L(x) and L'(x)
+                for (lfs_size_t j = 0; j < l_size; j++) {
+                    uint8_t t = l[j];
+                    l[j] = l_[j];
+                    l_[j] = t;
+                }
+
+                // let L(x)  = delta    L(x)
+                // let L'(x) = delta^-1 L'(x)
+                ramrsbd_gf_p_scale(
+                        l, l_size,
+                        delta);
+                ramrsbd_gf_p_scale(
+                        l_, l_size,
+                        ramrsbd_gf_div(1, delta));
+
+                // update the number of errors
+                n = i+1 - n;
+            }
+
+            // let L(x) = L(x) + delta L'(x)
+            for (lfs_size_t j = 0; j < l_size; j++) {
+                l[j] ^= ramrsbd_gf_mul(delta, l_[j]);
+            }
+        }
+    }
+
+    return n;
+}
+
+// find the error-evaluator polynomial, E(x), given a set of
+// syndromes, S, and an error-locator polynomial, L(x)
+//
+// E(x) = S(x) L(x) mod x^2n
+//
+static void ramrsbd_find_e(
+        uint8_t *e, lfs_size_t e_size,
+        const uint8_t *s, lfs_size_t s_size,
+        const uint8_t *l, lfs_size_t l_size) {
+    LFS_ASSERT(e_size == s_size);
+    LFS_ASSERT(e_size == l_size-1);
+
+    // let E(x) = S(x) L(x) mod x^2n
+    //
+    // note that the mod is really just truncating the array, which
+    // ramrsbd_gf_p_mul does implicitly if the array is too small
+    //
+    memcpy(e, s, s_size);
+    ramrsbd_gf_p_mul(
+            e, e_size,
+            l+1, l_size-1);
+}
+
+// find the formal derivative of the error-locator polynomial
+//
+// L(x)  = 1 + sum_i=1^n {         L_i   x^i     }
+// L'(x) =     sum_i=1^n { sum^i { L_i } x^(i-1) }
+//
+static void ramrsbd_find_l_(
+        uint8_t *l_, lfs_size_t l__size,
+        const uint8_t *l, lfs_size_t l_size) {
+    LFS_ASSERT(l__size == l_size-1);
+
+    for (lfs_size_t i = 0; i < l__size; i++) {
+        // the formal derivative defines each step as repeated addition,
+        // but our addition is just xor, so we really just need to see
+        // if this term cancels itself out
+        l_[l__size-1-i] = (i%2 == 0) ? l[l__size-1-i] : 0;
+    }
 }
 
 int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
@@ -155,34 +353,103 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                 * bd->cfg->code_size;
 
         // read codeword
-        memcpy(bd->m,
+        memcpy(bd->c,
                 &bd->buffer[block*bd->cfg->erase_size + off_],
                 bd->cfg->code_size);
 
         // calculate syndromes
-        bool s_zero = true;
-        for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
-            // let s_i = m(g^i)
-            //
-            // note this should be zero for every g^i if no error is present
-            //
-            bd->s[i] = ramrsbd_gf_p_eval(
-                    bd->m, bd->cfg->code_size,
-                    ramrsbd_gf_pow(RAMRSBD_GF_G, i));
-
-            // keep track of if we have any non-zero syndromes
-            if (bd->s[i] != 0) {
-                s_zero = false;
-            }
-        }
+        bool s_zero = ramrsbd_find_s(
+                bd->s, bd->cfg->ecc_size,
+                bd->c, bd->cfg->code_size);
 
         // non-zero syndromes? errors are present, attempt to correct
         if (!s_zero) {
-            // TODO
+            // find the error-locator polynomial, L(x)
+            lfs_size_t n = ramrsbd_find_l(
+                    bd->l, bd->cfg->ecc_size+1,
+                    bd->l_, bd->cfg->ecc_size+1,
+                    bd->s, bd->cfg->ecc_size);
+
+            // too many errors?
+            if (n > bd->cfg->ecc_size/2
+                    || (bd->cfg->error_correction
+                        && (lfs_ssize_t)n > bd->cfg->error_correction)) {
+                LFS_DEBUG("Found uncorrectable ramrsbd errors "
+                        "0x%"PRIx32".%"PRIx32" %"PRIu32" "
+                        "(%"PRId32" > %"PRId32")",
+                        block, off_,
+                        bd->cfg->code_size - bd->cfg->ecc_size,
+                        n,
+                        (bd->cfg->error_correction)
+                            ? bd->cfg->error_correction
+                            : (lfs_ssize_t)(bd->cfg->ecc_size/2));
+                return LFS_ERR_CORRUPT;
+            }
+
+            // find the error evaluator polynomial, E(x)
+            ramrsbd_find_e(
+                    bd->e, bd->cfg->ecc_size,
+                    bd->s, bd->cfg->ecc_size,
+                    bd->l, bd->cfg->ecc_size+1);
+
+            // find the formal derivative of L(x)
+            ramrsbd_find_l_(
+                    bd->l_, bd->cfg->ecc_size,
+                    bd->l, bd->cfg->ecc_size+1);
+
+            // brute force search for error locations, this is any location i
+            // where g^-(code_size-1-i) is a root of our error-locator
+            for (lfs_size_t i = 0; i < bd->cfg->code_size; i++) {
+                // map the error location to the multiplicative ring
+                //
+                // let X_i = g^i
+                //
+                uint8_t x_i = ramrsbd_gf_pow(
+                        RAMRSBD_GF_G,
+                        bd->cfg->code_size-1-i);
+                uint8_t x_i_ = ramrsbd_gf_div(1, x_i);
+
+                // is X_i a root of our error-locator?
+                //
+                // does L(X_i^-1) = 0?
+                //
+                if (ramrsbd_gf_p_eval(
+                            bd->l, bd->cfg->ecc_size+1,
+                            x_i_)
+                        != 0) {
+                    continue;
+                }
+
+                // found an error location, now find its magnitude
+                //
+                //                E(X_i^-1)
+                // let Y_i = X_i ----------
+                //               L'(X_i^-1) 
+                //
+                uint8_t y_i = ramrsbd_gf_mul(
+                        x_i,
+                        ramrsbd_gf_div(
+                            ramrsbd_gf_p_eval(
+                                bd->e, bd->cfg->ecc_size,
+                                x_i_),
+                            ramrsbd_gf_p_eval(
+                                bd->l_, bd->cfg->ecc_size,
+                                x_i_)));
+
+                // found error location and magnitude, now we can fix it!
+                bd->c[i] ^= y_i;
+            }
+
+            // calculate syndromes again to make sure we found all errors
+            // TODO need this if always true?
+            bool s_zero = ramrsbd_find_s(
+                    bd->s, bd->cfg->ecc_size,
+                    bd->c, bd->cfg->code_size);
+            LFS_ASSERT(s_zero);
         }
 
         // copy the data part of our codeword
-        memcpy(buffer_, bd->m, bd->cfg->code_size-bd->cfg->ecc_size);
+        memcpy(buffer_, bd->c, bd->cfg->code_size-bd->cfg->ecc_size);
 
         off += bd->cfg->code_size-bd->cfg->ecc_size;
         buffer_ += bd->cfg->code_size-bd->cfg->ecc_size;
@@ -216,21 +483,23 @@ int ramrsbd_prog(const struct lfs_config *cfg, lfs_block_t block,
 
         // calculate ecc
         //
-        // let m'(x) = m(x) + (m(x) % p(x))
+        // let C(x) = M(x) x^n + (M(x) x^n % P(x))
         //
-        // note this makes m'(x) divisible by p(x)
+        // note this makes C(x) divisible by P(x)
         //
-        memcpy(bd->m, buffer_, bd->cfg->code_size-bd->cfg->ecc_size);
+        memset(bd->c, 0, bd->cfg->code_size);
+        memcpy(bd->c, buffer_, bd->cfg->code_size-bd->cfg->ecc_size);
         ramrsbd_gf_p_divmod(
-                bd->m, bd->cfg->code_size,
+                bd->c, bd->cfg->code_size,
                 bd->p, bd->cfg->ecc_size+1);
 
-        // the divmod clobbers m(x), so we need to copy m(x) again
-        memcpy(bd->m, buffer_, bd->cfg->code_size-bd->cfg->ecc_size);
+        // the divmod clobbers M(x), so we need to copy M(x) again
+        memcpy(bd->c, buffer_, bd->cfg->code_size-bd->cfg->ecc_size);
 
-        // program codeword
+        // program our codeword
         memcpy(&bd->buffer[block*bd->cfg->erase_size + off_],
-                buffer_, bd->cfg->code_size-bd->cfg->ecc_size);
+                bd->c,
+                bd->cfg->code_size);
 
         off += bd->cfg->code_size-bd->cfg->ecc_size;
         buffer_ += bd->cfg->code_size-bd->cfg->ecc_size;

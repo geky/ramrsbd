@@ -38,7 +38,7 @@ void ramrsbd_gf_p_xor(
 
     // this just gets a little bit confusing since b may be smaller than a
     for (lfs_size_t i = 0; i < b_size; i++) {
-        a[i+(a_size-b_size)] ^= b[i];
+        a[(a_size-b_size)+i] ^= b[i];
     }
 }
 
@@ -50,15 +50,17 @@ void ramrsbd_gf_p_mul(
 
     // in place multiplication, which gets a bit confusing
     //
-    // note we only write to b_size-1 + i-j, and b_size-1 + i-j
-    // is always >= b_size-1 + 0-j
+    // note we only write to i-(b_size-1)+j, and i-(b_size-1)+j is
+    // always <= i
     //
-    for (lfs_size_t i = 0; i < (a_size-b_size)+1; i++) {
-        uint8_t x = a[b_size-1 + i-0];
-        a[b_size-1 + i-0] = 0;
+    for (lfs_size_t i = 0; i < a_size; i++) {
+        uint8_t x = a[i];
+        a[i] = 0;
 
-        for (lfs_size_t j = 0; j < b_size; j++) {
-            a[b_size-1 + i-j] ^= ramrsbd_gf_mul(x, b[b_size-1 + 0-j]);
+        for (lfs_size_t j = ((i < b_size) ? b_size-1-i : 0);
+                j < b_size;
+                j++) {
+            a[i-(b_size-1)+j] ^= ramrsbd_gf_mul(x, b[j]);
         }
     }
 }

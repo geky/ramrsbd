@@ -55,24 +55,11 @@ struct ramrsbd_config {
     // -1 disables error correction and errors on any errors.
     lfs_ssize_t error_correction;
 
-    // Optional statically allocated codeword buffer. This acts as scratch
-    // space for interim math.
+    // Optionally statically allocated math buffer that serves as scratch space
+    // for internal math.
     //
-    // Must be code_size.
-    void *code_buffer;
-
-    // Optional statically allocated generator polynomial buffer.
-    //
-    // Must be ecc_size+1.
-    void *p_buffer;
-
-    // Optional statically allocated syndrome buffer. This is used to find
-    // error locations.
-    //
-    // TODO can this be smaller if error_correction != 0?
-    //
-    // Must be ecc_size.
-    void *syndrome_buffer;
+    // Must be code_size + 5*ecc_size + 3 bytes.
+    void *math_buffer;
 
     // Optional statically allocated buffer for the block device.
     void *buffer;
@@ -83,12 +70,20 @@ typedef struct ramrsbd {
     uint8_t *buffer;
     const struct ramrsbd_config *cfg;
 
-    // scratch space for math
-    uint8_t *m;
+    // various buffers for internal math
+
+    // codeword buffer
+    uint8_t *c; // code_size
     // generator polynomial
-    uint8_t *p;
+    uint8_t *p; // ecc_size+1
     // syndrome buffer
-    uint8_t *s;
+    uint8_t *s; // ecc_size
+    // error-locator polynomial
+    uint8_t *l; // ecc_size+1
+    // error-evaluator polynomial
+    uint8_t *e; // ecc_size
+    // error-locator derivative
+    uint8_t *l_; // ecc_size+1
 } ramrsbd_t;
 
 
