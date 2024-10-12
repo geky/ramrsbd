@@ -207,7 +207,6 @@ static lfs_size_t ramrsbd_find_l(
         uint8_t *l_, lfs_size_t l__size,
         const uint8_t *s, lfs_size_t s_size) {
     LFS_ASSERT(l_size == l__size);
-    // TODO can this be relaxed?
     LFS_ASSERT(l_size == s_size);
 
     // iteratively find the error-locator using Berlekamp-Massey
@@ -437,7 +436,6 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
             }
 
             // calculate syndromes again to make sure we found all errors
-            // TODO need this if always true?
             bool s_zero = ramrsbd_find_s(
                     bd->s, bd->cfg->ecc_size,
                     bd->c, bd->cfg->code_size);
