@@ -58,7 +58,7 @@ struct ramrsbd_config {
     // Optionally statically allocated math buffer that serves as scratch space
     // for internal math.
     //
-    // Must be code_size + 5*ecc_size + 3 bytes.
+    // Must be code_size + 4*ecc_size.
     void *math_buffer;
 
     // Optional statically allocated buffer for the block device.
@@ -80,8 +80,6 @@ typedef struct ramrsbd {
     uint8_t *s; // ecc_size
     // error-locator polynomial
     uint8_t *l; // ecc_size+1
-    // error-evaluator polynomial
-    uint8_t *e; // ecc_size
     // error-locator derivative
     uint8_t *l_; // ecc_size+1
 } ramrsbd_t;

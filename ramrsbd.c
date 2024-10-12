@@ -71,7 +71,7 @@ int ramrsbd_create(const struct lfs_config *cfg,
         bd->p = (uint8_t*)bd->cfg->math_buffer
                 + bd->cfg->code_size;
     } else {
-        bd->p = lfs_malloc(bd->cfg->ecc_size+1);
+        bd->p = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->p) {
             RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
             return LFS_ERR_NOMEM;
@@ -82,7 +82,7 @@ int ramrsbd_create(const struct lfs_config *cfg,
     if (bd->cfg->math_buffer) {
         bd->s = (uint8_t*)bd->cfg->math_buffer
                 + bd->cfg->code_size
-                + bd->cfg->ecc_size+1;
+                + bd->cfg->ecc_size;
     } else {
         bd->s = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
@@ -95,25 +95,10 @@ int ramrsbd_create(const struct lfs_config *cfg,
     if (bd->cfg->math_buffer) {
         bd->l = (uint8_t*)bd->cfg->math_buffer
                 + bd->cfg->code_size
-                + bd->cfg->ecc_size+1
+                + bd->cfg->ecc_size
                 + bd->cfg->ecc_size;
     } else {
-        bd->l = lfs_malloc(bd->cfg->ecc_size+1);
-        if (!bd->s) {
-            RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
-            return LFS_ERR_NOMEM;
-        }
-    }
-
-    // allocate error-evaluator buffer?
-    if (bd->cfg->math_buffer) {
-        bd->e = (uint8_t*)bd->cfg->math_buffer
-                + bd->cfg->code_size
-                + bd->cfg->ecc_size+1
-                + bd->cfg->ecc_size
-                + bd->cfg->ecc_size+1;
-    } else {
-        bd->e = lfs_malloc(bd->cfg->ecc_size);
+        bd->l = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
             RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
             return LFS_ERR_NOMEM;
@@ -124,12 +109,11 @@ int ramrsbd_create(const struct lfs_config *cfg,
     if (bd->cfg->math_buffer) {
         bd->l_ = (uint8_t*)bd->cfg->math_buffer
                 + bd->cfg->code_size
-                + bd->cfg->ecc_size+1
                 + bd->cfg->ecc_size
-                + bd->cfg->ecc_size+1
+                + bd->cfg->ecc_size
                 + bd->cfg->ecc_size;
     } else {
-        bd->l_ = lfs_malloc(bd->cfg->ecc_size+1);
+        bd->l_ = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
             RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
             return LFS_ERR_NOMEM;
@@ -140,12 +124,16 @@ int ramrsbd_create(const struct lfs_config *cfg,
     //
     // P(x) = prod_i^ecc_size { x - g^i }
     //
-    // note this evaluates to 0 at every x=g^i for i < ecc_size
+    // the important property of P(x) is that it evaluates to 0
+    // at every x=g^i for i < ecc_size
+    //
+    // normally P(x) needs ecc_size+1 terms, but the leading term
+    // is always 1, so we can make it implicit
     //
     
     // let P(x) = 1
     memset(bd->p, 0, bd->cfg->ecc_size);
-    bd->p[bd->cfg->ecc_size] = 1;
+    bd->p[bd->cfg->ecc_size-1] = 1;
 
     for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
         // let R(x) = x + g^i
@@ -153,7 +141,7 @@ int ramrsbd_create(const struct lfs_config *cfg,
 
         // let P'(x) = P(x) * R(x)
         ramrsbd_gf_p_mul(
-                bd->p, bd->cfg->ecc_size+1,
+                bd->p, bd->cfg->ecc_size,
                 r, 2);
     }
 
@@ -173,7 +161,6 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
         lfs_free(bd->p);
         lfs_free(bd->s);
         lfs_free(bd->l);
-        lfs_free(bd->e);
         lfs_free(bd->l_);
     }
     RAMRSBD_TRACE("ramrsbd_destroy -> %d", 0);
@@ -221,19 +208,20 @@ static lfs_size_t ramrsbd_find_l(
         const uint8_t *s, lfs_size_t s_size) {
     LFS_ASSERT(l_size == l__size);
     // TODO can this be relaxed?
-    LFS_ASSERT(l_size == s_size+1);
+    LFS_ASSERT(l_size == s_size);
 
     // iteratively find the error-locator using Berlekamp-Massey
     //
 
     // guess an error-locator
     //
-    // let L(x)  = 1
-    // let L'(x) = 1
+    // let L(x)  = 1 // current guess
+    // let L'(x) = 1 // previous guess
     //
     memset(l, 0, l_size-1);
     l[l_size-1] = 1;
-    memcpy(l_, l, l_size);
+    memset(l_, 0, l_size-1);
+    l_[l_size-1] = 1;
 
     // guess a number of errors
     //
@@ -281,9 +269,10 @@ static lfs_size_t ramrsbd_find_l(
             }
 
             // let L(x) = L(x) + delta L'(x)
-            for (lfs_size_t j = 0; j < l_size; j++) {
-                l[j] ^= ramrsbd_gf_mul(delta, l_[j]);
-            }
+            ramrsbd_gf_p_xors(
+                    l, l_size,
+                    l_, l_size,
+                    delta);
         }
     }
 
@@ -300,17 +289,21 @@ static void ramrsbd_find_e(
         const uint8_t *s, lfs_size_t s_size,
         const uint8_t *l, lfs_size_t l_size) {
     LFS_ASSERT(e_size == s_size);
-    LFS_ASSERT(e_size == l_size-1);
+    LFS_ASSERT(e_size == l_size);
+
+    // allow E(x)/S(x) to overlap
+    if (e != s) {
+        memcpy(e, s, s_size);
+    }
 
     // let E(x) = S(x) L(x) mod x^2n
     //
     // note that the mod is really just truncating the array, which
     // ramrsbd_gf_p_mul does implicitly if the array is too small
     //
-    memcpy(e, s, s_size);
     ramrsbd_gf_p_mul(
             e, e_size,
-            l+1, l_size-1);
+            l, l_size);
 }
 
 // find the formal derivative of the error-locator polynomial
@@ -321,13 +314,16 @@ static void ramrsbd_find_e(
 static void ramrsbd_find_l_(
         uint8_t *l_, lfs_size_t l__size,
         const uint8_t *l, lfs_size_t l_size) {
-    LFS_ASSERT(l__size == l_size-1);
+    LFS_ASSERT(l__size == l_size);
 
-    for (lfs_size_t i = 0; i < l__size; i++) {
+    memset(l_, 0, l__size);
+    for (lfs_size_t i = 1; i < l_size; i++) {
         // the formal derivative defines each step as repeated addition,
         // but our addition is just xor, so we really just need to see
         // if this term cancels itself out
-        l_[l__size-1-i] = (i%2 == 0) ? l[l__size-1-i] : 0;
+        if (i % 2 != 0) {
+            l_[l__size-1-(i-1)] = l[l_size-1-i];
+        }
     }
 }
 
@@ -366,8 +362,8 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
         if (!s_zero) {
             // find the error-locator polynomial, L(x)
             lfs_size_t n = ramrsbd_find_l(
-                    bd->l, bd->cfg->ecc_size+1,
-                    bd->l_, bd->cfg->ecc_size+1,
+                    bd->l, bd->cfg->ecc_size,
+                    bd->l_, bd->cfg->ecc_size,
                     bd->s, bd->cfg->ecc_size);
 
             // too many errors?
@@ -388,14 +384,14 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
 
             // find the error evaluator polynomial, E(x)
             ramrsbd_find_e(
-                    bd->e, bd->cfg->ecc_size,
                     bd->s, bd->cfg->ecc_size,
-                    bd->l, bd->cfg->ecc_size+1);
+                    bd->s, bd->cfg->ecc_size,
+                    bd->l, bd->cfg->ecc_size);
 
             // find the formal derivative of L(x)
             ramrsbd_find_l_(
                     bd->l_, bd->cfg->ecc_size,
-                    bd->l, bd->cfg->ecc_size+1);
+                    bd->l, bd->cfg->ecc_size);
 
             // brute force search for error locations, this is any location i
             // where g^-(code_size-1-i) is a root of our error-locator
@@ -414,7 +410,7 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                 // does L(X_i^-1) = 0?
                 //
                 if (ramrsbd_gf_p_eval(
-                            bd->l, bd->cfg->ecc_size+1,
+                            bd->l, bd->cfg->ecc_size,
                             x_i_)
                         != 0) {
                     continue;
@@ -430,7 +426,7 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                         x_i,
                         ramrsbd_gf_div(
                             ramrsbd_gf_p_eval(
-                                bd->e, bd->cfg->ecc_size,
+                                bd->s, bd->cfg->ecc_size,
                                 x_i_),
                             ramrsbd_gf_p_eval(
                                 bd->l_, bd->cfg->ecc_size,
@@ -489,9 +485,14 @@ int ramrsbd_prog(const struct lfs_config *cfg, lfs_block_t block,
         //
         memset(bd->c, 0, bd->cfg->code_size);
         memcpy(bd->c, buffer_, bd->cfg->code_size-bd->cfg->ecc_size);
-        ramrsbd_gf_p_divmod(
+        printf("p: ");
+        for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
+            printf("%02x ", bd->p[i]);
+        }
+        printf("\n");
+        ramrsbd_gf_p_divmod1(
                 bd->c, bd->cfg->code_size,
-                bd->p, bd->cfg->ecc_size+1);
+                bd->p, bd->cfg->ecc_size);
 
         // the divmod clobbers M(x), so we need to copy M(x) again
         memcpy(bd->c, buffer_, bd->cfg->code_size-bd->cfg->ecc_size);

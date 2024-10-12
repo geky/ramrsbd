@@ -42,6 +42,19 @@ void ramrsbd_gf_p_xor(
     }
 }
 
+// Xor two polynomials together after scaling b by a constant c
+void ramrsbd_gf_p_xors(
+        uint8_t *a, lfs_size_t a_size,
+        const uint8_t *b, lfs_size_t b_size,
+        uint8_t c) {
+    LFS_ASSERT(a_size >= b_size);
+
+    // this just gets a little bit confusing since b may be smaller than a
+    for (lfs_size_t i = 0; i < b_size; i++) {
+        a[(a_size-b_size)+i] ^= ramrsbd_gf_mul(b[i], c);
+    }
+}
+
 // Multiply two polynomials together
 void ramrsbd_gf_p_mul(
         uint8_t *a, lfs_size_t a_size,
@@ -87,4 +100,22 @@ void ramrsbd_gf_p_divmod(
     }
 }
 
+// Find both the quotient and remainder after division, assuming b has
+// an implicit leading 1
+void ramrsbd_gf_p_divmod1(
+        uint8_t *a, lfs_size_t a_size,
+        const uint8_t *b, lfs_size_t b_size) {
+    LFS_ASSERT(a_size >= b_size);
 
+    // normally you would need to normalize b, but we know the leading
+    // coefficient is 1
+
+    // divide via synthetic division
+    for (lfs_size_t i = 0; i < a_size-b_size; i++) {
+        if (a[i] != 0) {
+            for (lfs_size_t j = 0; j < b_size; j++) {
+                a[i+j+1] ^= ramrsbd_gf_mul(a[i], b[j]);
+            }
+        }
+    }
+}
