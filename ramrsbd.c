@@ -369,7 +369,7 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
             if (n > bd->cfg->ecc_size/2
                     || (bd->cfg->error_correction
                         && (lfs_ssize_t)n > bd->cfg->error_correction)) {
-                LFS_DEBUG("Found uncorrectable ramrsbd errors "
+                LFS_WARN("Found uncorrectable ramrsbd errors "
                         "0x%"PRIx32".%"PRIx32" %"PRIu32" "
                         "(%"PRId32" > %"PRId32")",
                         block, off_,
@@ -439,7 +439,20 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
             bool s_zero = ramrsbd_find_s(
                     bd->s, bd->cfg->ecc_size,
                     bd->c, bd->cfg->code_size);
-            LFS_ASSERT(s_zero);
+            if (!s_zero) {
+                LFS_WARN("Found uncorrectable ramrsbd errors "
+                        "0x%"PRIx32".%"PRIx32" %"PRIu32" "
+                        "(s != 0)",
+                        block, off_,
+                        bd->cfg->code_size - bd->cfg->ecc_size);
+                return LFS_ERR_CORRUPT;
+            }
+
+            LFS_DEBUG("Found %"PRId32" correctable ramcrc32bd errors "
+                    "0x%"PRIx32".%"PRIx32" %"PRIu32,
+                    n,
+                    block, off_,
+                    bd->cfg->code_size - bd->cfg->ecc_size);
         }
 
         // copy the data part of our codeword
@@ -483,11 +496,6 @@ int ramrsbd_prog(const struct lfs_config *cfg, lfs_block_t block,
         //
         memset(bd->c, 0, bd->cfg->code_size);
         memcpy(bd->c, buffer_, bd->cfg->code_size-bd->cfg->ecc_size);
-        printf("p: ");
-        for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
-            printf("%02x ", bd->p[i]);
-        }
-        printf("\n");
         ramrsbd_gf_p_divmod1(
                 bd->c, bd->cfg->code_size,
                 bd->p, bd->cfg->ecc_size);

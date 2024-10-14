@@ -1,0 +1,191 @@
+# This test is just for generating the pixel art in the readme
+#
+
+code = '''
+#include "ramrsbd.h"
+
+// here is our 1-bit pixel art
+static const uint8_t PIXELART[] = {
+    0x00, 0x00, 0x0f, 0xfe, 0x00, 0x00, 0x07, 0x0e,
+    0x00, 0x00, 0x3f, 0xff, 0xc0, 0x00, 0x0f, 0xff,
+    0x00, 0x00, 0xff, 0xff, 0xe0, 0x00, 0x0f, 0xff,
+    0x00, 0x01, 0xff, 0xff, 0xf8, 0x00, 0x0f, 0xff,
+    0x00, 0x03, 0xff, 0xff, 0xfc, 0x00, 0x0f, 0xfe,
+    0x00, 0x07, 0xff, 0xff, 0xfe, 0x00, 0x0f, 0xfc,
+    0x00, 0x0f, 0xff, 0xff, 0xfe, 0x00, 0x1f, 0xf8,
+    0x00, 0x1f, 0xff, 0xff, 0xff, 0x00, 0x5f, 0xf8,
+    0x00, 0x1f, 0xff, 0xff, 0xff, 0x80, 0x6f, 0xf8,
+    0x00, 0x3f, 0xff, 0xff, 0xff, 0x87, 0x6b, 0xf0,
+    0x00, 0x3f, 0xff, 0xff, 0xff, 0x87, 0xa0, 0xe0,
+    0x00, 0x3f, 0xff, 0xff, 0xfe, 0x33, 0x80, 0x00,
+    0x00, 0x7f, 0xff, 0xff, 0xfc, 0xfa, 0x00, 0x00,
+    0x00, 0x7f, 0xff, 0xff, 0xf3, 0xf8, 0x00, 0x00,
+    0x00, 0x7f, 0xff, 0xff, 0xc7, 0xf0, 0x00, 0x00,
+    0x00, 0x7f, 0xff, 0xff, 0x1f, 0xc0, 0x00, 0x00,
+    0x00, 0x7f, 0xff, 0xfc, 0x7f, 0x00, 0x00, 0x00,
+    0x00, 0x7f, 0xff, 0xf1, 0xfc, 0x40, 0x00, 0x00,
+    0x01, 0x7f, 0xff, 0xc7, 0xf1, 0xc0, 0x00, 0x00,
+    0x07, 0x7f, 0xfe, 0x1f, 0xc7, 0xc0, 0x00, 0x00,
+    0x0f, 0x3f, 0xf8, 0xff, 0x1f, 0xc0, 0x00, 0x00,
+    0x3e, 0x3f, 0xe3, 0xfc, 0x7f, 0xc0, 0x00, 0x00,
+    0x78, 0x3f, 0x0f, 0xf1, 0xff, 0x80, 0x00, 0x00,
+    0x70, 0x1c, 0x7f, 0xcf, 0xff, 0x80, 0x00, 0x00,
+    0xe0, 0x01, 0xfe, 0x3f, 0xff, 0x00, 0x00, 0x00,
+    0xc0, 0x0f, 0xf8, 0xff, 0xfe, 0x00, 0x00, 0x00,
+    0x00, 0x7f, 0xc7, 0xff, 0xfe, 0x00, 0x00, 0x00,
+    0x07, 0xff, 0x1f, 0xff, 0xfc, 0x00, 0x00, 0x00,
+    0xff, 0xf0, 0xff, 0xff, 0xf8, 0x00, 0x00, 0x00,
+    0x7f, 0x80, 0xff, 0xff, 0xe0, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x3f, 0xff, 0xc0, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x0f, 0xfe, 0x00, 0x00, 0x00, 0x00,
+};
+
+// a function for printing pixel art with .':
+static void printpixelart(
+        const uint8_t *pixelart,
+        lfs_size_t width,
+        lfs_size_t height) {
+    for (lfs_size_t y = 0; y < height; y += 2) {
+        for (lfs_size_t x = 0; x < 8*width; x++) {
+            lfs_size_t a = (y+0)*8*width + x;
+            lfs_size_t b = (y+1)*8*width + x;
+            printf("%c", " '.:"[
+                    (((pixelart[a/8] >> (8-1-a%8)) & 0x1) << 0)
+                        | (((pixelart[b/8] >> (8-1-b%8)) & 0x1) << 1)]);
+        }
+        printf("\n");
+    }
+}
+'''
+
+# width/height of pixel art before ecc
+defines.WIDTH = 8
+defines.HEIGHT = 32
+
+defines.CODE_SIZE = 'WIDTH + ECC_SIZE'
+defines.ECC_SIZE = 4
+defines.ERASE_SIZE = 'CODE_SIZE * HEIGHT'
+
+defines.READ_SIZE = 'CODE_SIZE - ECC_SIZE'
+defines.PROG_SIZE = 'CODE_SIZE - ECC_SIZE'
+defines.BLOCK_SIZE = 'ERASE_SIZE - ((ERASE_SIZE/CODE_SIZE)*ECC_SIZE)'
+
+[cases.test_pixelart_bits]
+defines.SEED = 42
+code = '''
+    ramrsbd_t ramrsbd;
+    struct lfs_config cfg_ = *cfg;
+    cfg_.context = &ramrsbd;
+    cfg_.read  = ramrsbd_read;
+    cfg_.prog  = ramrsbd_prog;
+    cfg_.erase = ramrsbd_erase;
+    cfg_.sync  = ramrsbd_sync;
+    struct ramrsbd_config ramrsbdcfg = {
+        .code_size = CODE_SIZE,
+        .ecc_size = ECC_SIZE,
+        .erase_size = ERASE_SIZE,
+        .erase_count = ERASE_COUNT,
+    };
+    ramrsbd_create(&cfg_, &ramrsbdcfg) => 0;
+
+    // write our pixel art
+    cfg_.erase(&cfg_, 0) => 0;
+    cfg_.prog(&cfg_, 0, 0, PIXELART, WIDTH*HEIGHT) => 0;
+
+    // corrupt until we can no longer read
+    uint32_t prng = SEED;
+    lfs_size_t n = 0;
+    while (true) {
+        // choose a random bit
+        lfs_size_t bit = TEST_PRNG(&prng) % (8*(WIDTH+ECC_SIZE)*HEIGHT);
+        // flip
+        ramrsbd.buffer[bit/8] ^= 1 << (bit%8);
+
+        // can we read?
+        uint8_t buffer[WIDTH*HEIGHT];
+        int err = cfg_.read(&cfg_, 0, 0, buffer, WIDTH*HEIGHT);
+        if (err) {
+            // no? undo last bit error and terminate
+            ramrsbd.buffer[bit/8] ^= 1 << (bit%8);
+            break;
+        }
+
+        n += 1;
+    }
+
+    // print the corrupted contents on disk, including any ecc
+    printf("corrupted:\n");
+    printpixelart(ramrsbd.buffer, WIDTH + ECC_SIZE, HEIGHT);
+
+    // repair by reading and rewriting
+    uint8_t buffer[WIDTH*HEIGHT];
+    cfg_.read(&cfg_, 0, 0, buffer, WIDTH*HEIGHT) => 0;
+    cfg_.erase(&cfg_, 0) => 0;
+    cfg_.prog(&cfg_, 0, 0, buffer, WIDTH*HEIGHT) => 0;
+
+    // print the repaired contents on disk, including any ecc
+    printf("repaired:\n");
+    printpixelart(ramrsbd.buffer, WIDTH + ECC_SIZE, HEIGHT);
+
+    ramrsbd_destroy(&cfg_) => 0;
+'''
+
+[cases.test_pixelart_bytes]
+defines.SEED = 42
+code = '''
+    ramrsbd_t ramrsbd;
+    struct lfs_config cfg_ = *cfg;
+    cfg_.context = &ramrsbd;
+    cfg_.read  = ramrsbd_read;
+    cfg_.prog  = ramrsbd_prog;
+    cfg_.erase = ramrsbd_erase;
+    cfg_.sync  = ramrsbd_sync;
+    struct ramrsbd_config ramrsbdcfg = {
+        .code_size = CODE_SIZE,
+        .ecc_size = ECC_SIZE,
+        .erase_size = ERASE_SIZE,
+        .erase_count = ERASE_COUNT,
+    };
+    ramrsbd_create(&cfg_, &ramrsbdcfg) => 0;
+
+    // write our pixel art
+    cfg_.erase(&cfg_, 0) => 0;
+    cfg_.prog(&cfg_, 0, 0, PIXELART, WIDTH*HEIGHT) => 0;
+
+    // corrupt until we can no longer read
+    uint32_t prng = SEED;
+    lfs_size_t n = 0;
+    while (true) {
+        // choose a random byte
+        lfs_size_t byte = TEST_PRNG(&prng) % ((WIDTH+ECC_SIZE)*HEIGHT);
+        // flip
+        ramrsbd.buffer[byte] ^= 0xff;
+
+        // can we read?
+        uint8_t buffer[WIDTH*HEIGHT];
+        int err = cfg_.read(&cfg_, 0, 0, buffer, WIDTH*HEIGHT);
+        if (err) {
+            // no? undo last byte error and terminate
+            ramrsbd.buffer[byte] ^= 0xff;
+            break;
+        }
+
+        n += 1;
+    }
+
+    // print the corrupted contents on disk, including any ecc
+    printf("corrupted:\n");
+    printpixelart(ramrsbd.buffer, WIDTH + ECC_SIZE, HEIGHT);
+
+    // repair by reading and rewriting
+    uint8_t buffer[WIDTH*HEIGHT];
+    cfg_.read(&cfg_, 0, 0, buffer, WIDTH*HEIGHT) => 0;
+    cfg_.erase(&cfg_, 0) => 0;
+    cfg_.prog(&cfg_, 0, 0, buffer, WIDTH*HEIGHT) => 0;
+
+    // print the repaired contents on disk, including any ecc
+    printf("repaired:\n");
+    printpixelart(ramrsbd.buffer, WIDTH + ECC_SIZE, HEIGHT);
+
+    ramrsbd_destroy(&cfg_) => 0;
+'''
