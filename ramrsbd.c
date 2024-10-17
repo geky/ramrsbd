@@ -107,13 +107,13 @@ int ramrsbd_create(const struct lfs_config *cfg,
 
     // allocate error-locator derivative buffer?
     if (bd->cfg->math_buffer) {
-        bd->l_ = (uint8_t*)bd->cfg->math_buffer
+        bd->dl = (uint8_t*)bd->cfg->math_buffer
                 + bd->cfg->code_size
                 + bd->cfg->ecc_size
                 + bd->cfg->ecc_size
                 + bd->cfg->ecc_size;
     } else {
-        bd->l_ = lfs_malloc(bd->cfg->ecc_size);
+        bd->dl = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
             RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
             return LFS_ERR_NOMEM;
@@ -161,7 +161,7 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
         lfs_free(bd->p);
         lfs_free(bd->s);
         lfs_free(bd->l);
-        lfs_free(bd->l_);
+        lfs_free(bd->dl);
     }
     RAMRSBD_TRACE("ramrsbd_destroy -> %d", 0);
     return 0;
@@ -197,30 +197,31 @@ static bool ramrsbd_find_s(
     return s_zero;
 }
 
-// find the error-locator polynomial, L(x), given a set of syndromes, S
+// find the error-locator polynomial, L(x), given a set of syndromes, S,
+// T(x) provides scratch space for interim math
 //
 // L(x) = prod_i=0^n { 1 - X_i x }
 //
 // also returns the number of errors for convenience
 static lfs_size_t ramrsbd_find_l(
         uint8_t *l, lfs_size_t l_size,
-        uint8_t *l_, lfs_size_t l__size,
+        uint8_t *t, lfs_size_t t_size,
         const uint8_t *s, lfs_size_t s_size) {
-    LFS_ASSERT(l_size == l__size);
-    LFS_ASSERT(l_size == s_size);
+    LFS_ASSERT(t_size == l_size);
+    LFS_ASSERT(s_size == l_size);
 
     // iteratively find the error-locator using Berlekamp-Massey
     //
 
     // guess an error-locator
     //
-    // let L(x)  = 1 // current guess
-    // let L'(x) = 1 // previous guess
+    // let L(x) = 1 // current guess
+    // let T(x) = 1 // previous guess
     //
     memset(l, 0, l_size-1);
     l[l_size-1] = 1;
-    memset(l_, 0, l_size-1);
-    l_[l_size-1] = 1;
+    memset(t, 0, t_size-1);
+    t[t_size-1] = 1;
 
     // guess a number of errors
     //
@@ -232,46 +233,46 @@ static lfs_size_t ramrsbd_find_l(
     for (lfs_size_t i = 0; i < s_size; i++) {
         // calculate syndrome discrepancy
         //
-        // let delta = S_i + sum_j=1^n { L_j S_i-j }
+        // let d = S_i + sum_j=1^n { L_j S_i-j }
         //
-        uint8_t delta = s[s_size-1-i];
+        uint8_t d = s[s_size-1-i];
         for (lfs_size_t j = 1; j <= n; j++) {
-            delta ^= ramrsbd_gf_mul(l[l_size-1-j], s[s_size-1-(i-j)]);
+            d ^= ramrsbd_gf_mul(l[l_size-1-j], s[s_size-1-(i-j)]);
         }
 
-        // let L'(x) = L'(x) x
-        memmove(l_, l_+1, l_size-1);
-        l_[l_size-1] = 0;
+        // let T(x) = T(x) x
+        memmove(t, t+1, t_size-1);
+        t[t_size-1] = 0;
 
         // found discrepancy?
-        if (delta != 0) {
+        if (d != 0) {
             // not enough errors for discrepancy?
             if (i >= 2*n) {
-                // swap L(x) and L'(x)
+                // swap L(x) and T(x)
                 for (lfs_size_t j = 0; j < l_size; j++) {
-                    uint8_t t = l[j];
-                    l[j] = l_[j];
-                    l_[j] = t;
+                    uint8_t x = l[j];
+                    l[j] = t[j];
+                    t[j] = x;
                 }
 
-                // let L(x)  = delta    L(x)
-                // let L'(x) = delta^-1 L'(x)
+                // let L(x) = d    L(x)
+                // let T(x) = d^-1 T(x)
                 ramrsbd_gf_p_scale(
                         l, l_size,
-                        delta);
+                        d);
                 ramrsbd_gf_p_scale(
-                        l_, l_size,
-                        ramrsbd_gf_div(1, delta));
+                        t, t_size,
+                        ramrsbd_gf_div(1, d));
 
                 // update the number of errors
                 n = i+1 - n;
             }
 
-            // let L(x) = L(x) + delta L'(x)
+            // let L(x) = L(x) + d T(x)
             ramrsbd_gf_p_xors(
                     l, l_size,
-                    l_, l_size,
-                    delta);
+                    t, t_size,
+                    d);
         }
     }
 
@@ -310,18 +311,18 @@ static void ramrsbd_find_e(
 // L(x)  = 1 + sum_i=1^n {         L_i   x^i     }
 // L'(x) =     sum_i=1^n { sum^i { L_i } x^(i-1) }
 //
-static void ramrsbd_find_l_(
-        uint8_t *l_, lfs_size_t l__size,
+static void ramrsbd_find_dl(
+        uint8_t *dl, lfs_size_t dl_size,
         const uint8_t *l, lfs_size_t l_size) {
-    LFS_ASSERT(l__size == l_size);
+    LFS_ASSERT(dl_size == l_size);
 
-    memset(l_, 0, l__size);
+    memset(dl, 0, dl_size);
     for (lfs_size_t i = 1; i < l_size; i++) {
         // the formal derivative defines each step as repeated addition,
         // but our addition is just xor, so we really just need to see
         // if this term cancels itself out
         if (i % 2 != 0) {
-            l_[l__size-1-(i-1)] = l[l_size-1-i];
+            dl[dl_size-1-(i-1)] = l[l_size-1-i];
         }
     }
 }
@@ -362,7 +363,7 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
             // find the error-locator polynomial, L(x)
             lfs_size_t n = ramrsbd_find_l(
                     bd->l, bd->cfg->ecc_size,
-                    bd->l_, bd->cfg->ecc_size,
+                    bd->dl, bd->cfg->ecc_size,
                     bd->s, bd->cfg->ecc_size);
 
             // too many errors?
@@ -388,8 +389,8 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                     bd->l, bd->cfg->ecc_size);
 
             // find the formal derivative of L(x)
-            ramrsbd_find_l_(
-                    bd->l_, bd->cfg->ecc_size,
+            ramrsbd_find_dl(
+                    bd->dl, bd->cfg->ecc_size,
                     bd->l, bd->cfg->ecc_size);
 
             // brute force search for error locations, this is any location i
@@ -428,7 +429,7 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                                 bd->s, bd->cfg->ecc_size,
                                 x_i_),
                             ramrsbd_gf_p_eval(
-                                bd->l_, bd->cfg->ecc_size,
+                                bd->dl, bd->cfg->ecc_size,
                                 x_i_)));
 
                 // found error location and magnitude, now we can fix it!
