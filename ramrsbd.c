@@ -231,48 +231,42 @@ static lfs_size_t ramrsbd_find_l(
 
     // iterate through syndromes
     for (lfs_size_t i = 0; i < s_size; i++) {
-        // calculate syndrome discrepancy
+        // shift T(x)
         //
-        // let d = S_i + sum_j=1^n { L_j S_i-j }
-        //
-        uint8_t d = s[s_size-1-i];
-        for (lfs_size_t j = 1; j <= n; j++) {
-            d ^= ramrsbd_gf_mul(l[l_size-1-j], s[s_size-1-(i-j)]);
-        }
-
         // let T(x) = T(x) x
         memmove(t, t+1, t_size-1);
         t[t_size-1] = 0;
 
+        // calculate syndrome discrepancy
+        //
+        // let d = sum_j=0^n { L_j S_i-j }
+        //
+        uint8_t d = 0;
+        for (lfs_size_t j = 0; j <= n; j++) {
+            d ^= ramrsbd_gf_mul(
+                    l[l_size-1-j],
+                    s[s_size-1-(i-j)]);
+        }
+
         // found discrepancy?
         if (d != 0) {
+            // let L(x) = L(x) - d T(x)
+            ramrsbd_gf_p_xors(
+                    l, l_size,
+                    d,
+                    t, t_size);
+
             // not enough errors for discrepancy?
             if (i >= 2*n) {
-                // swap L(x) and T(x)
-                for (lfs_size_t j = 0; j < l_size; j++) {
-                    uint8_t x = l[j];
-                    l[j] = t[j];
-                    t[j] = x;
-                }
-
-                // let L(x) = d    L(x)
-                // let T(x) = d^-1 T(x)
-                ramrsbd_gf_p_scale(
-                        l, l_size,
-                        d);
-                ramrsbd_gf_p_scale(
+                // let T(x) = T(x) + d^-1 L(x)
+                ramrsbd_gf_p_xors(
                         t, t_size,
-                        ramrsbd_gf_div(1, d));
+                        ramrsbd_gf_div(1, d),
+                        l, l_size);
 
                 // update the number of errors
                 n = i+1 - n;
             }
-
-            // let L(x) = L(x) + d T(x)
-            ramrsbd_gf_p_xors(
-                    l, l_size,
-                    t, t_size,
-                    d);
         }
     }
 

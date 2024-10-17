@@ -36,8 +36,8 @@ void ramrsbd_gf_p_xor(
 // Xor two polynomials together after scaling b by a constant c
 void ramrsbd_gf_p_xors(
         uint8_t *a, lfs_size_t a_size,
-        const uint8_t *b, lfs_size_t b_size,
-        uint8_t c);
+        uint8_t c,
+        const uint8_t *b, lfs_size_t b_size);
 
 // Multiply two polynomials together
 void ramrsbd_gf_p_mul(
