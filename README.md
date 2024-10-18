@@ -142,7 +142,7 @@ results in another set of terms we call the "error-locators" $X_j=g^j$:
 
 $$
 S_i = E(g^i) = \sum_{j \in e} Y_j (g^i)^j
-             = \sum_{j \in e} Y_j g^(i+j)
+             = \sum_{j \in e} Y_j g^{ij}
              = \sum_{j \in e} Y_j X_j^i
 $$
 
@@ -190,11 +190,271 @@ This polynomial has some rather useful properties:
               = 1
    $$
 
-   And is useful for preventing trivial solutions to $\Lambda(x)$.
+   This prevents trivial solutions and is what makes $\Lambda(x)$ useful.
 
-But of course we don't know $\Lambda(x)$ yet, we need to find it.
+But what's _really_ interesting, is that these two properties allow us to
+solve for $\Lambda(x)$ with only our syndromes $S_i$.
+
+First note that since $\Lambda(x)$ has $e$ roots, we can expand it into
+an $e$ degree polynomial. We also know that $\Lambda(0) = 1$, so the
+constant term must be 1. If we name the coefficients of this polynomial
+$\Lambda_k$, this gives us another definition of $\Lambda(x)$:
+
+$$
+\Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k
+$$
+
+Plugging in $X_j^{-1}$ should still evaluate to zero:
+
+$$
+\Lambda(X_j^{-1}) = 1 + \sum_{k=1}^e \Lambda_k X_j^{-k} = 0
+$$
+
+And since multiplying anything by zero is zero, we can multiply this by,
+say, $Y_j X_j^i$, and the result should still be zero:
+
+$$
+Y_j X_j^i \Lambda(X_j^{-1}) = Y_j X_j^i + \sum_{k=1}^e Y_j X_j^{i-k} \Lambda_k = 0
+$$
+
+We can even add a bunch of these together and the result should still be
+zero:
+
+$$
+\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = \sum_{j \in e} \left(Y_j X_j^i + \sum_{k=1}^e Y_j X_j^{i-k} \Lambda_k\right) = 0
+$$
+
+Wait a second...
+
+$$
+\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = \left(\sum_{j \in e} Y_j X_j^i\right) + \sum_{k=1}^e \left(\sum_{j \in e} Y_j X_j^{i-k}\right) \Lambda_k = 0
+$$
+
+Aren't these our syndromes? $S_i$?
+
+$$
+\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = S_i + \sum_{k=1}^e S_{i-k} \Lambda_k = 0
+$$
+
+We can rearrange this into an equation for $S_i$ using only our
+coefficients and $e$ previously seen syndromes $S_{i-k}$:
+
+$$
+S_i = \sum_{k=1}^e S_{i-k} \Lambda_k
+$$
+
+The only problem is this is one equation with $e$ unknowns, our
+coefficients $\Lambda_k$.
+
+But if we repeat this for $e$ syndromes, $S_{e}$ to $S_{n-1}$, we can
+build $e$ equations for $e$ unknowns, and create a system of equations
+that is solvable. This is why we need $n=2e$ syndromes/fixed-points to
+solve for $e$ errors:
+
+$$
+\begin{bmatrix}
+S_{e} \\
+S_{e+1} \\
+\vdots \\
+S_{n-1} \\
+\end{bmatrix} =
+\begin{bmatrix}
+S_{e-1} & S_{e-2} & \dots & S_0\\
+S_{e} & S_{e-1} & \dots & S_1\\
+\vdots & \vdots & \ddots & \vdots \\
+S_{n-2} & S_{n-3} & \dots & S_{e-1}\\
+\end{bmatrix}
+\begin{bmatrix}
+\Lambda_1 \\
+\Lambda_2 \\
+\vdots \\
+\Lambda_e \\
+\end{bmatrix}
+$$
+
+#### Berlekamp-Massey
+
+Ok that's the theory, but solving this system of equations efficiently is
+still quite difficult.
+
+TODO
+
+#### Chien search?
+
+TODO
+
+#### Evaluating the errors
+
+Once we've found our error locations $X_j$, solving for the error
+magnitudes $Y_j$ is relatively straightforward. Kind of.
+
+Recall the definition of our syndromes $S_i$:
+
+$$
+S_i = \sum_{j \in e} Y_j X_j^i
+$$
+
+With $e$ syndromes, this can be rewritten as a system of equations with
+$e$ equations and $e$ unknowns, our error magnitudes $Y_j$, which we can
+solve for:
+
+$$  
+\begin{bmatrix}  
+S_0 \\  
+S_1 \\  
+\vdots \\  
+S_{e-1} \\  
+\end{bmatrix} =  
+\begin{bmatrix}  
+1 & 1 & \dots & 1\\  
+X_{j_0} & X_{j_1} & \dots & X_{j_{e-1}}\\  
+\vdots & \vdots & \ddots & \vdots \\  
+X_{j_0}^{e-1} & X_{j_1}^{e-1} & \dots & X_{j_{e-1}}^{e-1}\\  
+\end{bmatrix}  
+\begin{bmatrix}  
+Y_{j_0}\\  
+Y_{j_1}\\  
+\vdots \\  
+Y_{j_{e-1}}\\  
+\end{bmatrix}  
+$$
+
+#### Forney's algorithm
+
+But again, solving this system of equations is easier said than done.
+
+It turns out there's a really clever formula that can be used to solve
+for $Y_j$ directly, called [Forney's algorithm][forneys-algorithm].
+
+Forney's algorithm introduces two new polynomials. The error-evaluator
+polynomial, $\Omega(x)$, defined like so:
+
+$$
+\Omega(x) = S(x) \Lambda(x) \bmod x^n
+$$
+
+And the [formal derivative][formal derivative] of the error-locator,
+which we can calculate by terms:
+
+$$
+\Lambda'(x) = \sum_{i=1}^e \sum^i \Lambda_i x^{i-1}
+$$
+
+Combining these gives us a direct equation for an error-magnitude $Y_j$
+given a known error-location $X_j$:
+
+$$
+Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^)}
+$$
+
+#### WTF
+
+Haha, I know right? Where did this equation come from? How does it work?
+How did Forney even come up with this?
+
+To be honest I really don't know.
+
+TODO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vvvv use this? vvvv
+
+Let's go back to to $\Lambda(X_j^{-1})$:
+
+$$
+\Lambda(X_j^{-1}) = 0
+$$
+
+We can multiply by $Y_jX_j^i$ for an arbitrary $i$ and the result will still be zero:
+
+$$
+X_j Y_j^{i}\Lambda(X_j^{-1}) = 0
+$$
+
+We can even add a bunch of these together and the result will still be zero:
+
+$$
+\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = 0
+$$
+
+And if we expand this mess, something interesting happens:
+
+
+$$
+\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = \sum_{j \in e} \left(Y_j X_j^i + \sum_{k=1}^e Y_j X_j^i \Lambda_k(X_j^{-1})^k\right)
+$$
+
+$$
+= \sum_{j \in e} \left(Y_j X_j^i + \sum_{k=1}^e Y_j X_j^{i-k} \Lambda_k\right)
+$$
+
+$$
+= \sum_{j \in e} Y_j X_j^i + \sum_{k=1}^e \left(\sum_{j \in e} Y_j X_j^{i-k}\right) \Lambda_k
+$$
+
+$$
+= S_i + \sum_{k=1}^e S_{i-k} \Lambda_k
+$$
+
+But this is still be equal to zero, so we can rearrange this:
+
+$$
+S_i = \sum_{k=1}^e S_{i-k} \Lambda_k
+$$
+
+This gives us a system of equations with $e$ equations and $e$ unknowns:
+
+$$
+\begin{bmatrix}
+S_{e} \\
+S_{e+1} \\
+\vdots \\
+S_{n-1} \\
+\end{bmatrix} =
+\begin{bmatrix}
+S_{e-1} & S_{e-2} & \dots & S_0\\
+S_{e} & S_{e-1} & \dots & S_1\\
+\vdots & \vdots & \ddots & \vdots \\
+S_{n-2} & S_{n-3} & \dots & S_{e-1}\\
+\end{bmatrix}
+\begin{bmatrix}
+\Lambda_1 \\
+\Lambda_2 \\
+\vdots \\
+\Lambda_e \\
+\end{bmatrix}
+$$
+
+Find via Berlekamp-Massey.
+
+
+
+
+
+
 
 vvvv TODO vvvv
+
+But of course we don't know $\Lambda(x)$ yet, we need to find it.
 
 There are several different ways to go about this. In ramrsbd we use
 Berlekamp-Massey to iteratively solve for the coefficients of
