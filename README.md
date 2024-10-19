@@ -582,30 +582,66 @@ $$
 \frac{X_{j'} \Omega(X_{j'}^{-1}}{\Lambda'(X_{j'}^{-1})} = \frac{X_{j'} Y_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)}{X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)} = Y_{j'}
 $$
 
+#### Putting it all together
+
+Once we've figured out the error-locator polynomial $\Lambda(x)$, the
+error-evaluator polynomial $\Omega(x)$, and the derivative of the
+error-locator polynomial $\Lambda'(x)$, we get to the fun part: Fixing
+the errors!
+
+For each location $j$ in the malformed codeword $C'(x)$, calculate the
+error-location $X_j = g^j$ and plug its inverse $X_j^{-1}$ into the
+error-locator $\Lambda(x)$. If $\Lambda(X_j^{-1}) = 0$ we've found the
+location of an error!
+
+To fix the error, plug the error-location $X_j$ and its inverse
+$X_j^{-1}$ into Forney's formula to find the error-magnitude
+$Y_j$: $Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}$. Xor
+$Y_j$ into the codeword to fix this error!
+
+Repeat for all errors in the malformed codeword $C'(x)$, and with any
+luck we should find the original codeword $C(x)$!
+
+$$
+C(x) = C'(x) - \sum_{j \in e} Y_j x^j
+$$
+
+But we're not quite done. All of this math assumed we had
+$e \le \frac{n}{2}$ errors. If we had more errors, it's possible we just
+made things worse.
+
+It's worth recalculating the syndromes after repairing errors to see if
+we did ended up with a valid codeword:
+
+$$
+S_i = C(g^i) = 0
+$$
+
+If the syndromes are all zero, chances are high we successfully repaired
+our codeword. Unless of course we had enough errors to end up
+overcorrecting to another codeword...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+vvvv TODO vvvv
+
 Once we know our error-location $X_{j'}$ and error magnitude $Y_{j'}$, we
 can xor our errored codeword $C'(x)$ with $Y_{j'}$ to remove this
 specific error.
 
 Repeat for all errors, and we should end up with our original codeword
 $C(x)$!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 vvvv TODO vvvv
 
