@@ -241,8 +241,8 @@ static lfs_size_t ramrsbd_find_l(
         //
         // let d = sum_j=0^n { L_j S_i-j }
         //
-        uint8_t d = 0;
-        for (lfs_size_t j = 0; j <= n; j++) {
+        uint8_t d = s[s_size-1-i];
+        for (lfs_size_t j = 1; j <= n; j++) {
             d ^= ramrsbd_gf_mul(
                     l[l_size-1-j],
                     s[s_size-1-(i-j)]);
