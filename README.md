@@ -336,6 +336,7 @@ Berlekamp-Massey relies on two key observations:
    $s_0, s_1, \dots, s_{n-1}$, but failed to generate the sequence
    $s_0, s_1, \dots, s_{n-1}, s_n$, than an LFSR $L'$ that generates the
    sequence must have a size of at least:
+
    $$
    |L'| \ge n+1-|L|
    $$
@@ -378,7 +379,102 @@ Berlekamp-Massey relies on two key observations:
    $|L'| \ge n+1-|L|$ so that $L$ can no longer generate
    $s_{n-|L'|}, s_{n-|L'|+1}, \cdots, s_{n-1}$.
 
-2. We can use previously found, smaller LFSRs, to to build a longer LFSR
+2. Once we've found the best LFSR $L$ for a given size $|L|$, its
+   definition provides an optimal strategy for changing only the last
+   element of the generated sequence.
+
+   This is assuming $L$ failed of course. If $L$ generated the whole
+   sequence our algorithm is done!
+
+   If $L$ failed, we assume it correctly generated
+   $s_0, s_1, \cdots, s_{n-1}$, but failed at $s_n$. We call the
+   difference from the expected symbol the discrepancy $d$:
+
+   $$  
+   L(i) = \sum_{k=1}^{|L|} L_k s_{i-k} =  
+   \begin{cases}  
+   s_i & i = |L|, |L|+1, \cdots, n-1 \\  
+   s_i+d & i = n  
+   \end{cases}  
+   $$  
+
+   If we know $s_i$ (which requires a larger LFSR), we can rearrange this
+   to be a bit more useful. We call this our connection polynomial $C$:
+
+   $$  
+   C(i) = d^{-1}\left(s_i - \sum_{k=1}^{|L|} L_k s_{i-k}\right) =  
+   \begin{cases}  
+   0 & i = |L|, |L|+1,\cdots,n-1 \\  
+   1 & i = n  
+   \end{cases}  
+   $$
+
+   Now, if we have a larger LFSR $L'$ with size $|L'| \gt |L|$, and we
+   want to change only the symbol $s'_n$ by $d'$, we can just add
+   $d' C(i)$ to it:
+
+   $$
+   L'(i) + d' C(i) =
+   \begin{cases}
+   s'_i & i = |L'|,|L'|+1,\cdots,n-1 \\
+   s'_i + d' & i = n
+   \end{cases}
+   $$
+
+If you can wrap your head around those two observations, you'll have
+understood most of Berlekamp-Massey.
+
+The actual algorithm itself is relatively simple:  
+  
+1. Using the current LFSR $L$, generate the next symbol $s'_n$, and
+   calculate the discrepancy $d$ between $s'_n$ and the expected symbol
+   $s_n$:
+
+   $$
+   d = s'_n - s_n
+   $$  
+  
+2. If $d=0$, great! Move on to the next symbol.  
+  
+3. If $d \ne 0$, we need to tweak our LFSR.
+
+   1. First check if our LFSR is big enough. If $n \ge 2|L|$, we need a
+      bigger LFSR:
+
+      $$
+      |L'| = n+1-|L|
+      $$
+
+      If we're changing the size, save the current LFSR for future
+      tweaks:
+
+      $$
+      C'(i) = d^{-1} L(i)
+      $$
+
+      $$
+      m = n
+      $$
+
+   2. Now we can fix the LFSR by adding our last $C$ (not $C'$!),
+      shifting and scaling so only $s_n$ is affected:
+
+      $$
+      L'(i) = L(i) + d C(i-(n-m))
+      $$
+
+This is all implemented in [ramrsbd_find_l][ramrsbd_find_l].
+
+### Solving binary LFSRs for fun
+
+
+
+
+
+
+vvvv TODO vvvv
+
+   We can use previously found, smaller LFSRs, to to build a longer LFSR
    without affecting existing results.
 
    First note that we know the expected symbols $s_i$, so we can rewrite our LFSR equation:
