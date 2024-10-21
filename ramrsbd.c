@@ -198,79 +198,83 @@ static bool ramrsbd_find_s(
 }
 
 // find the error-locator polynomial, L(x), given a set of syndromes, S,
-// T(x) provides scratch space for interim math
+// with C providing scratch space for interim math
 //
 // L(x) = prod_i=0^n { 1 - X_i x }
 //
 // also returns the number of errors for convenience
 static lfs_size_t ramrsbd_find_l(
         uint8_t *l, lfs_size_t l_size,
-        uint8_t *t, lfs_size_t t_size,
+        uint8_t *c, lfs_size_t c_size,
         const uint8_t *s, lfs_size_t s_size) {
-    LFS_ASSERT(t_size == l_size);
+    LFS_ASSERT(c_size == l_size);
     LFS_ASSERT(s_size == l_size);
 
     // iteratively find the error-locator using Berlekamp-Massey
     //
+    // this treats L as an LFSR we need to solve in GF(256)
+    //
 
-    // guess an error-locator
+    // guess an error-locator LFSR
     //
-    // let L(x) = 1 // current guess
-    // let T(x) = 1 // previous guess
+    // let e = 0    // guessed LFSR size/number of errors
+    // let L(i) = 1 // current LFSR guess
+    // let C(i) = 1 // best LFSR so far
     //
+    lfs_size_t e = 0;
     memset(l, 0, l_size-1);
     l[l_size-1] = 1;
-    memset(t, 0, t_size-1);
-    t[t_size-1] = 1;
+    memset(c, 0, c_size-1);
+    c[c_size-1] = 1;
 
-    // guess a number of errors
-    //
-    // let n = 0
-    //
-    lfs_size_t n = 0;
+    // iterate through symbols
+    for (lfs_size_t n = 0; n < s_size; n++) {
+        // shift C(i) = C(i-1)
+        memmove(c, c+1, c_size-1);
+        c[c_size-1] = 0;
 
-    // iterate through syndromes
-    for (lfs_size_t i = 0; i < s_size; i++) {
-        // shift T(x)
+        // calculate next symbol discrepancy
         //
-        // let T(x) = T(x) x
-        memmove(t, t+1, t_size-1);
-        t[t_size-1] = 0;
-
-        // calculate syndrome discrepancy
+        // let d = s_n - sum_i=1^e L_i S_n-i
         //
-        // let d = sum_j=0^n { L_j S_i-j }
-        //
-        uint8_t d = s[s_size-1-i];
-        for (lfs_size_t j = 1; j <= n; j++) {
+        uint8_t d = s[s_size-1-n];
+        for (lfs_size_t i = 1; i <= e; i++) {
             d ^= ramrsbd_gf_mul(
-                    l[l_size-1-j],
-                    s[s_size-1-(i-j)]);
+                    l[l_size-1-i],
+                    s[s_size-1-(n-i)]);
         }
 
         // found discrepancy?
         if (d != 0) {
-            // let L(x) = L(x) - d T(x)
+            // let L(i) = L(i) - d C(i)
             ramrsbd_gf_p_xors(
                     l, l_size,
                     d,
-                    t, t_size);
+                    c, c_size);
 
             // not enough errors for discrepancy?
-            if (i >= 2*n) {
-                // let T(x) = T(x) + d^-1 L(x)
+            if (n >= 2*e) {
+                // update the number of errors
+                e = n+1 - e;
+
+                // save best LFSR for later
+                //
+                // this should be C(i) = d^-1 L(i), but before we
+                // modified L(i) = L(i) - d C(i), fortunately we can just
+                // undo the modification to avoid needing more memory:
+                //
+                // let C(i) = d^-1 (L(i) + d C(i))
+                //          = C(i) + d^-1 L(i)
+                //
                 ramrsbd_gf_p_xors(
-                        t, t_size,
+                        c, c_size,
                         ramrsbd_gf_div(1, d),
                         l, l_size);
-
-                // update the number of errors
-                n = i+1 - n;
             }
         }
     }
 
-    return n;
+    return e;
 }
 
 // find the error-evaluator polynomial, E(x), given a set of
