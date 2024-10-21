@@ -607,7 +607,7 @@ C7(i) = C6(i-1) = s_i-2 + s_i-3
 
      .--------- + <-------.
      |          ^         |
-     |   .----.-|--.----.-|--.   Expected: 1 1 0 0 1 1 1 1
+     |   .----.-|--.----.-|--.
 L7 = '-> | 1  | 1  | 1  | 1  |-> Output:   1 1 0 0 1 1 1 1
          '----'----'----'----'   Expected: 1 1 0 0 1 1 1 1
                                        d = 0
@@ -622,8 +622,51 @@ L8(i) = L7(i) = s_i-2 + s_i-4
      .--------- + <-------.
      |          ^         |
      |   .----.-|--.----.-|--.
-L7 = '-> | 1  | 1  | 1  | 1  |-> Output:   1 1 0 0 1 1 1 1
+L8 = '-> | 1  | 1  | 1  | 1  |-> Output:   1 1 0 0 1 1 1 1
          '----'----'----'----'   Expected: 1 1 0 0 1 1 1 1
+```
+
+In case you want to play around with it, I've ported this algorithm to
+python in [bm-lfsr-solver.py][bm-lfsr-solver.py]. Feel free to try your
+own binary sequences to get a feel for the algorithm:
+
+``` bash
+$ ./bm-lfsr-solver.py 1 1 0 0 1 1 1 1
+
+... snip ...
+
+     .--------- + <-------.   
+     |          ^         |   
+     |   .----.-|--.----.-|--.
+L8 = '-> | 1  | 1  | 1  | 1  |-> Output:   1 1 0 0 1 1 1 1
+         '----'----'----'----'   Expected: 1 1 0 0 1 1 1 1
+```
+
+```
+$ ./bm-lfsr-solver.py 01101000 01101001 00100001
+
+... snip ...
+
+      .---- + <---------------- + <- + <- + <------ + <-------.        
+      |     ^                   ^    ^    ^         ^         |        
+      |   .-|--.----.----.----.-|--.-|--.-|--.----.-|--.----.-|--.----.
+L24 = '-> | 1  | 0  | 0  | 1  | 0  | 0  | 1  | 0  | 0  | 0  | 0  | 1  |-> Output:   0 1 1 0 1 0 0 0 0 1 1 0 1 0 0 1 0 0 1 0 0 0 0 1
+          '----'----'----'----'----'----'----'----'----'----'----'----'   Expected: 0 1 1 0 1 0 0 0 0 1 1 0 1 0 0 1 0 0 1 0 0 0 0 1
+```
+
+
+Is this a good compression algorithm? Probably not.
+
+vvvv TODO vvvv
+
+I've also implemented a similar script for full GF(256) LFSRs, though
+it's a bit harder for follow unless you can do full GF(256)
+multiplications in your head!
+
+TODO
+
+```
+$ ./bm-lfsr256-solver.py e0 e0 e0 e0 # TODO
 ```
 
 
