@@ -115,38 +115,46 @@ If we want to correct $e$ byte-errors, we will need $n = 2e$ fixed
 points. We can construct a generator polynomial $P(x)$ with $n$ fixed
 points at $g^i$ where $i < n$ like so:
 
-$$
+``` math
 P(x) = \prod_{i=0}^n \left(x - X_i\right)
-$$
+```
 
 We could choose any arbitrary set of fixed points, but usually we choose
 $g^i$ where $g$ is a [generator][generator] in GF(256), since it provides
 a convenient mapping of integers to unique non-zero elements in GF(256).
 
-Note that for any fixed point $g^i$, $x - g^i = g^i - g^i = 0$. And
-since multiplying anything by zero is zero, this will make our entire
+Note that for any fixed point $g^i$:
+
+``` math
+\begin{aligned}
+x - g^i &= g^i - g^i \\
+        &= 0
+\end{aligned}
+```
+
+And since multiplying anything by zero is zero, this will make our entire
 product zero. So for any fixed point $g^i$, $P(g^i)$ should also evaluate
 to zero:
 
-$$
+``` math
 P(g^i) = 0
-$$
+```
 
 This gets real nifty when you look at the definition of our Reed-Solomon
 code for codeword $C(x)$ given a message $M(x)$:
 
-$$
+``` math
 C(x) = M(x) x^n - (M(x) x^n \bmod P(x))
-$$
+```
 
 As is true with normal math, subtracting the remainder after division
 gives us a polynomial that is a multiple of $P(x)$. And since multiplying
 anything by zero is zero, for any fixed point $g^i$, $C(g^i)$ should also
 evaluate to zero:
 
-$$
+``` math
 C(g^i) = 0
-$$
+```
 
 #### Modeling errors
 
@@ -156,17 +164,19 @@ We can think of introducing $e$ errors as adding an error polynomial
 $E(x)$ to our original codeword, where $E(x)$ contains $e$ non-zero
 terms:
 
-$$
+``` math
 C'(x) = C(x) + E(x)
-$$
+```
 
 Check out what happens if we plug in our fixed point, $g^i$:
 
-$$
-C'(g^i) = C(g^i) + E(g^i)
-        = 0 + E(g^i)
-        = E(g^i)
-$$
+``` math
+\begin{aligned}
+C'(g^i) &= C(g^i) + E(g^i) \\
+        &= 0 + E(g^i) \\
+        &= E(g^i)
+\end{aligned}
+```
 
 The original codeword drops out! Leaving us with an equation defined only
 by the error polynomial.
@@ -174,26 +184,28 @@ by the error polynomial.
 We call these evaluations our "syndromes" $S_i$, since they tell us
 information about the error polynomial:
 
-$$
+``` math
 S_i = C'(g^i) = E(g^i)
-$$
+```
 
 We can also give the terms of the error polynomial names. Let's call the
 $e$ non-zero terms the "error-magnitudes" $Y_j$:
 
-$$
+``` math
 E(x) = \sum_{j \in e} Y_j x^j
-$$
+```
 
 Plugging in our fixed points $g^i$ gives us another definition of our
 syndromes $S_i$, which we can rearrange a bit for simplicity. This
 results in another set of terms we call the "error-locators" $X_j=g^j$:
 
-$$
-S_i = E(g^i) = \sum_{j \in e} Y_j (g^i)^j
-             = \sum_{j \in e} Y_j g^{ij}
-             = \sum_{j \in e} Y_j X_j^i
-$$
+``` math
+\begin{aligned}
+S_i = E(g^i) &= \sum_{j \in e} Y_j (g^i)^j \\
+             &= \sum_{j \in e} Y_j g^{ij} \\
+             &= \sum_{j \in e} Y_j X_j^i
+\end{aligned}
+```
 
 Note that solving for $X_j$ also gives us our "error-locations" $j$,
 since $j = \log_g X_j$.
@@ -208,36 +220,47 @@ Ok, let's say we received a codeword $C'(x)$ with $e$ errors. Evaluating
 at our fixed points $g^i$, where $i < n$ and $n \ge 2e$, gives us our
 syndromes $S_i$:
 
-$$
+``` math
 S_i = C'(g^i) = \sum_{j \in e} Y_j X_j^i
-$$
+```
 
 The next step is figuring our the locations of our errors $X_j$.
 
 To help with this, we introduce another polynomial, the "error-locator
 polynomial" $\Lambda(x)$:
 
-$$
+``` math
 \Lambda(x) = \prod_{j \in e} \left(1 - X_j x\right)
-$$
+```
 
 This polynomial has some rather useful properties:
 
-1. For any $X_j$, $\Lambda(X_j^-1) = 0$.
+1. For any $X_j$, $\Lambda(X_j^{-1}) = 0$.
 
-   This is for similar reasons why $P(g^i) = 0$. For any $X_j$,
-   $1 - X_j x = 1 - X_j X_j^-1 = 1 - 1 = 0$. And since multiplying
-   anything by zero is zero, the product reduces to zero.
+   This is for similar reasons why $P(g^i) = 0$. For any $X_j$:
+
+   $`
+   \begin{aligned}
+   1 - X_j x &= 1 - X_j X_j^-1 \\
+             &= 1 - 1 \\
+             &= 0
+   \end{aligned}
+   `$
+
+   And since multiplying anything by zero is zero, the product reduces to
+   zero.
 
 2. $\Lambda(0) = 1$.
 
    This can be seen by plugging in 0:
 
-   $$\\
-   \Lambda(0) = \prod_{j \in e} \left(1 - X_j 0\right)
-              = \prod_{j \in e} 1
-              = 1
-   $$
+   $`
+   \begin{aligned}
+   \Lambda(0) &= \prod_{j \in e} \left(1 - X_j 0\right) \\
+              &= \prod_{j \in e} 1 \\
+              &= 1
+   \end{aligned}
+   `$
 
    This prevents trivial solutions and is what makes $\Lambda(x)$ useful.
 
@@ -249,48 +272,48 @@ an $e$ degree polynomial. We also know that $\Lambda(0) = 1$, so the
 constant term must be 1. If we name the coefficients of this polynomial
 $\Lambda_k$, this gives us another definition of $\Lambda(x)$:
 
-$$
+``` math
 \Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k
-$$
+```
 
 Plugging in $X_j^{-1}$ should still evaluate to zero:
 
-$$
+``` math
 \Lambda(X_j^{-1}) = 1 + \sum_{k=1}^e \Lambda_k X_j^{-k} = 0
-$$
+```
 
 And since multiplying anything by zero is zero, we can multiply this by,
 say, $Y_j X_j^i$, and the result should still be zero:
 
-$$
+``` math
 Y_j X_j^i \Lambda(X_j^{-1}) = Y_j X_j^i + \sum_{k=1}^e Y_j X_j^{i-k} \Lambda_k = 0
-$$
+```
 
 We can even add a bunch of these together and the result should still be
 zero:
 
-$$
+``` math
 \sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = \sum_{j \in e} \left(Y_j X_j^i + \sum_{k=1}^e Y_j X_j^{i-k} \Lambda_k\right) = 0
-$$
+```
 
 Wait a second...
 
-$$
+``` math
 \sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = \left(\sum_{j \in e} Y_j X_j^i\right) + \sum_{k=1}^e \left(\sum_{j \in e} Y_j X_j^{i-k}\right) \Lambda_k = 0
-$$
+```
 
 Aren't these our syndromes? $S_i$?
 
-$$
+``` math
 \sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = S_i + \sum_{k=1}^e S_{i-k} \Lambda_k = 0
-$$
+```
 
 We can rearrange this into an equation for $S_i$ using only our
 coefficients and $e$ previously seen syndromes $S_{i-k}$:
 
-$$
+``` math
 S_i = \sum_{k=1}^e S_{i-k} \Lambda_k
-$$
+```
 
 The only problem is this is one equation with $e$ unknowns, our
 coefficients $\Lambda_k$.
@@ -300,26 +323,26 @@ build $e$ equations for $e$ unknowns, and create a system of equations
 that is solvable. This is why we need $n=2e$ syndromes/fixed-points to
 solve for $e$ errors:
 
-$$
+``` math
 \begin{bmatrix}
 S_{e} \\
 S_{e+1} \\
 \vdots \\
-S_{n-1} \\
+S_{n-1}
 \end{bmatrix} =
 \begin{bmatrix}
-S_{e-1} & S_{e-2} & \dots & S_0\\
-S_{e} & S_{e-1} & \dots & S_1\\
+S_{e-1} & S_{e-2} & \dots & S_0 \\
+S_{e} & S_{e-1} & \dots & S_1 \\
 \vdots & \vdots & \ddots & \vdots \\
-S_{n-2} & S_{n-3} & \dots & S_{e-1}\\
+S_{n-2} & S_{n-3} & \dots & S_{e-1}
 \end{bmatrix}
 \begin{bmatrix}
 \Lambda_1 \\
 \Lambda_2 \\
 \vdots \\
-\Lambda_e \\
+\Lambda_e
 \end{bmatrix}
-$$
+```
 
 #### Berlekamp-Massey
 
