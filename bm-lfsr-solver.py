@@ -40,7 +40,7 @@ def recurrence(l):
         for i, b in enumerate(l)
         if b])
 
-def lfsr(l, bits):
+def lfsr(l, s):
     l = l[1:]
     wire = max(
         (i if l_ else 0 for i, l_ in enumerate(l)),
@@ -69,7 +69,7 @@ def lfsr(l, bits):
     yield "".join([
         "'-> " if any(l) else "0-> ",
         "|" if l else "",
-        "".join(" %01x  |" % bits[len(bits)-len(l)+i]
+        "".join(" %01x  |" % s[len(s)-len(l)+i]
             for i, _ in enumerate(l)),
         "-> " if l else "",
     ])
@@ -90,21 +90,21 @@ def lfsr(l, bits):
 
 def main(bits, *,
         random=None):
-    # reparse to accept bits with and without spaces
-    bits_ = []
-    for b in bits:
-        for c in b:
-            if c == '1':
-                bits_.append(1)
-            elif c == '0':
-                bits_.append(0)
-    bits = bits_
-
     # generate random bits?
     if random is not None:
-        bits = randomlfsr(random)
+        s = randomlfsr(random)
 
-    print("Solving: %s" % sequence(bits))
+    # reparse to accept bits with and without spaces
+    else:
+        s = []
+        for b in bits:
+            for c in b:
+                if c == '1':
+                    s.append(1)
+                elif c == '0':
+                    s.append(0)
+
+    print("Solving: %s" % sequence(s))
     print()
 
     # guess an initial LFSR
@@ -118,12 +118,12 @@ def main(bits, *,
     print("C%d(i) = %s" % (n, recurrence(c)))
     print()
 
-    while n < len(bits):
+    while n < len(s):
         # calculate the discrepancy d
-        next = step(l, bits[len(bits)-n:])
-        d = next ^ bits[len(bits)-(n+1)]
+        next = step(l, s[len(s)-n:])
+        d = next ^ s[len(s)-(n+1)]
 
-        for i, line in enumerate(lfsr(l, bits)):
+        for i, line in enumerate(lfsr(l, s)):
             if i == 3:
                 print("L%d = " % n, end='')
             else:
@@ -133,70 +133,74 @@ def main(bits, *,
 
             if i == 3:
                 print("Output:   %s" % (
-                    sequence([next] + bits[len(bits)-n:])),
+                    sequence([next] + s[len(s)-n:])),
                     end='')
             elif i == 4:
                 print("Expected: %s" % (
-                    sequence(bits[len(bits)-(n+1):])),
+                    sequence(s[len(s)-(n+1):])),
                     end='')
             elif i == 5:
-                print("      d = %s" % d, end='')
+                print("      d = %01x" % d, end='')
 
             print()
         print()
 
         # no discrepancy? keep going
         if d == 0:
+            e_ = e
+            l_ = l
             # let C'(i) = C(i-1)
-            c = [0] + c
+            c_ = [0] + c
 
-            print("|L%d| = |L%d| = %d" % (n+1, n, e))
-            print("L%d(i) = L%d(i) = %s" % (n+1, n, recurrence(l)))
-            print("C%d(i) = C%d(i-1) = %s" % (n+1, n, recurrence(c)))
+            print("|L%d| = |L%d| = %d" % (n+1, n, e_))
+            print("L%d(i) = L%d(i) = %s" % (n+1, n, recurrence(l_)))
+            print("C%d(i) = C%d(i-1) = %s" % (n+1, n, recurrence(c_)))
             print()
 
         # found discrepancy?
         else:
             # fits in current LFSR?
             if n < 2*e:
-                l, c = (
-                    # let L'(i) = L(i) + C(i-1)
-                    [l_ ^ c_
-                        for l_, c_ in it.zip_longest(
-                            l, [0] + c, fillvalue=0)],
-                    # let C'(i) = C(i-1)
-                    [0] + c
-                )
+                e_ = e
+                # let L'(i) = L(i) + C(i-1)
+                l_ = [l_ ^ c_
+                    for l_, c_ in it.zip_longest(
+                        l, [0] + c, fillvalue=0)]
+                # let C'(i) = C(i-1)
+                c_ = [0] + c
 
                 print("|L%d| = |L%d| = %d" % (n+1, n, e))
                 print("L%d(i) = L%d(i) + C%d(i-1) = %s" % (
-                    n+1, n, n, recurrence(l)))
-                print("C%d(i) = C%d(i-1) = %s" % (n+1, n, recurrence(c)))
+                    n+1, n, n, recurrence(l_)))
+                print("C%d(i) = C%d(i-1) = %s" % (
+                    n+1, n, recurrence(c_)))
                 print()
 
             # need a bigger LFSR?
             else:
-                e, l, c = (
-                    # let |L'| = n+1-|L|
-                    n+1-e,
-                    # let L'(i) = L(i) + C(i-1)
-                    [l_ ^ c_
+                # let |L'| = n+1-|L|
+                e_ = n+1-e
+                # let L'(i) = L(i) + C(i-1)
+                l_ = [l_ ^ c_
                         for l_, c_ in it.zip_longest(
-                            l, [0] + c, fillvalue=0)],
-                    # let C'(i) = s_i + L(i)
-                    [1] + l[1:]
-                )
+                            l, [0] + c, fillvalue=0)]
+                # let C'(i) = s_i + L(i)
+                c_ = [1] + l[1:]
 
-                print("|L%d| = %d+1-|L%d| = %d" % (n+1, n, n, e))
+                print("|L%d| = %d+1-|L%d| = %d" % (n+1, n, n, e_))
                 print("L%d(i) = L%d(i) + C%d(i-1) = %s" % (
-                    n+1, n, n, recurrence(l)))
-                print("C%d(i) = L%d(i) = %s" % (n+1, n, recurrence(c)))
+                    n+1, n, n, recurrence(l_)))
+                print("C%d(i) = L%d(i) = %s" % (
+                    n+1, n, recurrence(c_)))
                 print()
 
+        e = e_
+        l = l_
+        c = c_
         n += 1
 
     # print final LFSR
-    for i, line in enumerate(it.islice(lfsr(l, bits), 5)):
+    for i, line in enumerate(it.islice(lfsr(l, s), 5)):
         if i == 3:
             print("L%d = " % n, end='')
         else:
@@ -205,9 +209,9 @@ def main(bits, *,
         print(line, end='')
 
         if i == 3:
-            print("Output:   %s" % sequence(bits), end='')
+            print("Output:   %s" % sequence(s), end='')
         elif i == 4:
-            print("Expected: %s" % sequence(bits), end='')
+            print("Expected: %s" % sequence(s), end='')
 
         print()
     print()
