@@ -29,7 +29,7 @@ block devices.
 Testing is a bit jank right now, relying on littlefs's test runner:
 
 ``` bash
-$ git clone git@github.com:littlefs-project/littlefs -b v2.9.3 --depth 1
+$ git clone https://github.com/littlefs-project/littlefs -b v2.9.3 --depth 1
 $ make test -j
 ```
 

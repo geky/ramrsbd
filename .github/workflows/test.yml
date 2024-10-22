@@ -23,7 +23,7 @@ jobs:
       # clone littlefs for its test runner
       - name: clone-littlefs
         run: |
-          git clone git@github.com:littlefs-project/littlefs -b v2.9.3 --depth 1
+          git clone https://github.com/littlefs-project/littlefs -b v2.9.3 --depth 1
 
       # test that things compile
       - name: build
