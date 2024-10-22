@@ -1,0 +1,37 @@
+name: test
+on: [push, pull_request]
+
+env:
+  CFLAGS: -Werror
+  MAKEFLAGS: -j
+  TESTFLAGS: -k
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: install
+        run: |
+          # need a few things
+          sudo apt-get update -qq
+          sudo apt-get install -qq gcc python3 python3-pip
+          pip3 install toml
+          gcc --version
+          python3 --version
+
+      # clone littlefs for its test runner
+      - name: clone-littlefs
+        run: |
+          git clone git@github.com:littlefs-project/littlefs -b v2.9.3 --depth 1
+
+      # test that things compile
+      - name: build
+        run: |
+          make
+
+      # run the tests!
+      - name: test
+        run: |
+          make test
+
