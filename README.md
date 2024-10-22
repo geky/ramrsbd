@@ -24,6 +24,15 @@ in the meantime, a RAM-backed block device provides a simple example of
 error-correction that users may be able to reimplement in their own
 block devices.
 
+### Testing
+
+Testing is a bit jank right now, relying on littlefs's test runner:
+
+``` bash
+$ git clone git@github.com:littlefs-project/littlefs -b v2.9.3 --depth 1
+$ make test -j
+```
+
 ### Word of warning
 
 Word of warning! I'm not a mathematician, some of the definitions here
