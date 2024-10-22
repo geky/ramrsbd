@@ -635,8 +635,8 @@ $ ./bm-lfsr-solver.py 1 1 0 0 1 1 1 1
 
 ... snip ...
 
-     .--------- + <-------.   
-     |          ^         |   
+     .--------- + <-------.
+     |          ^         |
      |   .----.-|--.----.-|--.
 L8 = '-> | 1  | 1  | 1  | 1  |-> Output:   1 1 0 0 1 1 1 1
          '----'----'----'----'   Expected: 1 1 0 0 1 1 1 1
@@ -647,28 +647,33 @@ $ ./bm-lfsr-solver.py 01101000 01101001 00100001
 
 ... snip ...
 
-      .---- + <---------------- + <- + <- + <------ + <-------.        
-      |     ^                   ^    ^    ^         ^         |        
+      .---- + <---------------- + <- + <- + <------ + <-------.
+      |     ^                   ^    ^    ^         ^         |
       |   .-|--.----.----.----.-|--.-|--.-|--.----.-|--.----.-|--.----.
 L24 = '-> | 1  | 0  | 0  | 1  | 0  | 0  | 1  | 0  | 0  | 0  | 0  | 1  |-> Output:   0 1 1 0 1 0 0 0 0 1 1 0 1 0 0 1 0 0 1 0 0 0 0 1
           '----'----'----'----'----'----'----'----'----'----'----'----'   Expected: 0 1 1 0 1 0 0 0 0 1 1 0 1 0 0 1 0 0 1 0 0 0 0 1
 ```
 
 
-Is this a good compression algorithm? Probably not.
-
-vvvv TODO vvvv
-
 I've also implemented a similar script for full GF(256) LFSRs, though
 it's a bit harder for follow unless you can do full GF(256)
 multiplications in your head!
 
-TODO
-
 ```
-$ ./bm-lfsr256-solver.py e0 e0 e0 e0 # TODO
+$ ./bm-lfsr256-solver.py 30 80 86 cb a3 78 8e 00
+
+... snip ...
+
+     .---- + <- + <- + <--.
+     |     ^    ^    ^    |
+     |    *f0  *04  *df  *ea
+     |     ^    ^    ^    ^
+     |   .-|--.-|--.-|--.-|--.
+L8 = '-> | a3 | 78 | 8e | 00 |-> Output:   30 80 86 cb a3 78 8e 00
+         '----'----'----'----'   Expected: 30 80 86 cb a3 78 8e 00
 ```
 
+Is this a good compression algorithm? Probably not.
 
 
 
