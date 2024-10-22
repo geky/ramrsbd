@@ -1821,8 +1821,12 @@ S_i = C(g^i) = 0
 $$
 
 If the syndromes are all zero, chances are high we successfully repaired
-our codeword. Unless of course we had enough errors to end up
-overcorrecting to another codeword...
+our codeword.
+
+Unless of course we had enough errors to end up overcorrecting to another
+codeword, but there's not much we can do in that case.
+
+No error-correction is perfect, Reed-Solomon is just damn well close.
 
 
 
