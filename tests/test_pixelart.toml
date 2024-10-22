@@ -124,7 +124,7 @@ code = '''
     cfg_.prog(&cfg_, 0, 0, buffer, WIDTH*HEIGHT) => 0;
 
     // print the repaired contents on disk, including any ecc
-    printf("repaired:\n");
+    printf("corrected:\n");
     printpixelart(ramrsbd.buffer, WIDTH + ECC_SIZE, HEIGHT);
 
     ramrsbd_destroy(&cfg_) => 0;
@@ -184,7 +184,7 @@ code = '''
     cfg_.prog(&cfg_, 0, 0, buffer, WIDTH*HEIGHT) => 0;
 
     // print the repaired contents on disk, including any ecc
-    printf("repaired:\n");
+    printf("corrected:\n");
     printpixelart(ramrsbd.buffer, WIDTH + ECC_SIZE, HEIGHT);
 
     ramrsbd_destroy(&cfg_) => 0;
