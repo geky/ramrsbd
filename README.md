@@ -538,6 +538,8 @@ you don't :)
 
 Can you figure out the original LFSR?
 
+Answer below the line:
+
 ---
 
 To start with Berlekamp-Massey, let's assume our LFSR is an empty LFSR
@@ -800,37 +802,32 @@ But again, solving this system of equations is easier said than done.
 It turns out there's a really clever formula that can be used to solve
 for $Y_j$ directly, called [Forney's algorithm][forneys-algorithm].
 
-Forney's algorithm introduces two new polynomials. The error-evaluator
-polynomial, $\Omega(x)$, defined like so:
+Assuming we know an error-locator $X_j$, plug it into the following
+formula to find an error-magnitude $Y_j$:
+
+$$
+Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^)}
+$$
+
+Where $\Omega(x)$, called the error-evaluator polynomial, is defined like
+so:
 
 $$
 \Omega(x) = S(x) \Lambda(x) \bmod x^n
 $$
 
-Where $S(x)$ is the syndrome polynomial built using our syndromes $S_i$
-as coefficients:
+And $\Lambda'(x)$, the [formal derivative][formal-derivative] of the
+error-locator, can be calculated by terms like so:
 
 $$
-S(x) = \sum_{i=0}^n S_i x^i
+\Lambda'(x) = \sum_{i=1}^2 i \cdot \Lambda_i x^{i-1}
 $$
 
-And the [formal derivative][formal derivative] of the error-locator,
-which we can calculate by terms:
+Though note $i$ is not a field element, so multiplication by $i$
+represents normal repeated addition. And since addition is xor in our
+field, this just cancels out every other term.
 
-$$
-\Lambda'(x) = \sum_{i=1}^e i \Lambda_i x^{i-1}
-$$
-
-Note $i$ is not a field element, so multiplication by $i$ represents
-normal repeated addition. And since addition is xor in our field, this
-just cancels out every other term.
-
-Combining these gives us a direct equation for an error-magnitude $Y_j$
-given a known error-location $X_j$:
-
-$$
-Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^)}
-$$
+The end result is a simple formula for our error-magnitudes $Y_j$.
 
 #### WTF
 
@@ -945,7 +942,7 @@ f(x) = f_0 + f_1 x + f_2 x^2 + \dots + f_i x^i
 $$
 
 $$
-f'(x) = f_1 + 2 f_2 x + \dots + i f_i x^{i-1}
+f'(x) = f_1 + 2 f_2 x + \dots + i \cdot f_i x^{i-1}
 $$
 
 Except $i$ here is not a finite-field element, so instead of doing
@@ -1001,7 +998,7 @@ $$
                       = X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)
 $$
 
-If we divied $\Omega(X_{j'}^{-1})$ by $\Lambda'(X_{j'}^{-1})$, all that
+If we divide $\Omega(X_{j'}^{-1})$ by $\Lambda'(X_{j'}^{-1})$, all that
 gobbledygook cancels out, leaving us with a simply equation containing
 $Y_{j'}$ and $X_{j'}$:
 
