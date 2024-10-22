@@ -2,9 +2,9 @@
 BUILDDIR ?= .
 # overridable target/src/tools/flags/etc
 ifneq ($(wildcard test.c main.c),)
-TARGET ?= $(BUILDDIR)/lfs
+TARGET ?= $(BUILDDIR)/ramrsbd
 else
-TARGET ?= $(BUILDDIR)/liblfs.a
+TARGET ?= $(BUILDDIR)/libramrsbd.a
 endif
 
 
@@ -474,10 +474,10 @@ benchmarks-diff: $(BENCH_CSV)
 .SUFFIXES:
 .SECONDARY:
 
-$(BUILDDIR)/lfs: $(OBJ)
+$(BUILDDIR)/ramrsbd: $(OBJ)
 	$(CC) $(CFLAGS) $^ $(LFLAGS) -o $@
 
-$(BUILDDIR)/liblfs.a: $(OBJ)
+$(BUILDDIR)/libramrsbd.a: $(OBJ)
 	$(AR) rcs $@ $^
 
 $(BUILDDIR)/lfs.code.csv: $(OBJ)
@@ -551,8 +551,8 @@ $(BUILDDIR)/%.b.a.c: %.c $(BENCHES)
 ## Clean everything
 .PHONY: clean
 clean:
-	rm -f $(BUILDDIR)/lfs
-	rm -f $(BUILDDIR)/liblfs.a
+	rm -f $(BUILDDIR)/ramrsbd
+	rm -f $(BUILDDIR)/libramrsbd.a
 	rm -f $(BUILDDIR)/lfs.code.csv
 	rm -f $(BUILDDIR)/lfs.data.csv
 	rm -f $(BUILDDIR)/lfs.stack.csv
