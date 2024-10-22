@@ -233,7 +233,7 @@ This polynomial has some rather useful properties:
 
    This can be seen by plugging in 0:
 
-   $$
+   $$\\
    \Lambda(0) = \prod_{j \in e} \left(1 - X_j 0\right)
               = \prod_{j \in e} 1
               = 1
