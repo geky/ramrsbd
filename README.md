@@ -352,55 +352,26 @@ still quite difficult.
 Enter the Berlekamp-Massey algorithm.
 
 The key observation here by Massey, is that solving for $\Lambda(x)$ is
-equivalent to constructing an LFSR that when given the initial sequence
+equivalent to constructing an LFSR, that when given the initial sequence
 $S_0, S_1, \dots, S_{e-1}$, generates the sequence
 $S_e, S_{e+1}, \dots, S_{n-1}$:
 
 ```
 .---- + <- + <- + <- + <--- ... --- + <--.
 |     ^    ^    ^    ^              ^    |
-|     |    |    |    |              |    |
 |    *Λ1  *Λ2  *Λ3  *Λ4     ...   *Λe-1 *Λe
 |     ^    ^    ^    ^              ^    ^
 |   .-|--.-|--.-|--.-|--.--     --.-|--.-|--.
-'-> |Se-1|Se-2|Se-3|Se-4|   ...   | S1 | S0 | ->
-    '----'----'----'----'--     --'----'----'
-
-                     |
-                     v
-
-.---- + <- + <- + <- + <--- ... --- + <--.
-|     ^    ^    ^    ^              ^    |
-|     |    |    |    |              |    |
-|    *Λ1  *Λ2  *Λ3  *Λ4     ...   *Λe-1 *Λe
-|     ^    ^    ^    ^              ^    ^
-|   .-|--.-|--.-|--.-|--.--     --.-|--.-|--.
-'-> |Sn-1|Sn-2|Sn-3|Sn-4|   ...   |Se+1| Se | ->
+'-> |Se-1|Se-2|Se-3|Se-4|   ...   | S1 | S0 | -> Sn-1 Sn-2 Sn-3 Sn-4 ... S1 S0
     '----'----'----'----'--     --'----'----'
 ```
 
-```
-    .----.----.----.----.--     --.----.----.
-.-> |Se-1|Se-2|Se-3|Se-4|   ...   | S1 | S0 |
-|   '-|--'-|--'-|--'-|--'--     --'-|--'-|--'
-|     v    v    v    v              v    v
-|    *Λ1  *Λ2  *Λ3  *Λ4     ...   *Λe-1 *Λe
-|     |    |    |    |              |    |
-|     v    v    v    v              v    |
-'---- + <- + <- + <- + <--- ... --- + <--'
+We can in turn describe this LFSR as a [recurrence relation][recurrence-relation]
+like so:
 
-                     |
-                     v
-
-    .----.----.----.----.--     --.----.----.
-.-> |Sn-1|Sn-2|Sn-3|Sn-4|   ...   |Se+1| Se |
-|   '-|--'-|--'-|--'-|--'--     --'-|--'-|--'
-|     v    v    v    v              v    v
-|    *Λ1  *Λ2  *Λ3  *Λ4     ...   *Λe-1 *Λe
-|     |    |    |    |              |    |
-|     v    v    v    v              v    |
-'---- + <- + <- + <- + <--- ... --- + <--'
-```
+$$
+\Lambda(i) = s_i = \sum_{k=1}^e \Lambda_k s_{i-k}
+$$
 
 Berlekamp-Massey relies on two key observations:
 
@@ -418,7 +389,7 @@ Berlekamp-Massey relies on two key observations:
    Consider the equation for our LFSR $L$:
    
    $$
-   s_n = \sum_{k=1}^{|L|} L_k s_{n-k}
+   L(n) = \sum_{k=1}^{|L|} L_k s_{n-k}
    $$
 
    If we have another LFSR $L'$ that generates
@@ -426,14 +397,15 @@ Berlekamp-Massey relies on two key observations:
    $s_{n-k}$:
 
    $$
-   s_n = \sum_{k=1}^{|L|} L_k \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k-k'}
+   L(n) = \sum_{k=1}^{|L|} L_k L'(n-k)
+        = \sum_{k=1}^{|L|} L_k \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k-k'}
    $$
 
    Multiplication in is distributive, so we can move our summations
    around:
    
    $$
-   s_n = \sum_{k'=1}^{|L'|} L'_{k'} \sum_{k=1}^{|L|} L_k s_{n-k-k'}
+   L(n) = \sum_{k'=1}^{|L'|} L'_{k'} \sum_{k=1}^{|L|} L_k s_{n-k-k'}
    $$
 
    Note the right summation looks like $L$. If $L$ generates
@@ -441,11 +413,17 @@ Berlekamp-Massey relies on two key observations:
    $s_{n-k'}$:
    
    $$
-   s_n = \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k'}
+   L(n) = \sum_{k'=1}^{|L'|} L'_{k'} L(n-k')
+        = \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k'}
    $$
    
-   Oh hey! That's the definition of $L'$. So if $L'$ generates $s_n$,
-   $L$ also generates $s_n$.
+   Oh hey! That's the definition of $L'$:
+
+   $$
+   L(n) = L'(n) = s_n
+   $$
+
+   So if $L'$ generates $s_n$, $L$ also generates $s_n$.
 
    The only way to make $L'$ generate a different $s_n$ would be to make
    $|L'| \ge n+1-|L|$ so that $L$ can no longer generate
@@ -542,7 +520,7 @@ The actual algorithm itself is relatively simple:
 This is all implemented in [ramrsbd_find_l][ramrsbd_find_l].
 
 
-### Solving binary LFSRs for fun and profit
+#### Solving binary LFSRs for fun and profit
 
 Taking a step away from GF(256) for a moment, let's look at a simpler
 LFSR in GF(2), aka binary.
@@ -725,7 +703,6 @@ $ ./bm-lfsr-solver.py 01101000 01101001 00100001
 L24 = '-> | 1  | 0  | 0  | 1  | 0  | 0  | 1  | 0  | 0  | 0  | 0  | 1  |-> Output:   0 1 1 0 1 0 0 0 0 1 1 0 1 0 0 1 0 0 1 0 0 0 0 1
           '----'----'----'----'----'----'----'----'----'----'----'----'   Expected: 0 1 1 0 1 0 0 0 0 1 1 0 1 0 0 1 0 0 1 0 0 0 0 1
 ```
-
 
 I've also implemented a similar script for full GF(256) LFSRs, though
 it's a bit harder for follow unless you can do full GF(256)
@@ -1522,10 +1499,25 @@ TODO
 
 #### Finding the error locations
 
-Once we've figured out $\Lambda(x)$, we have everything we need to find
-our error locations $X_j$.
+Coming back to Reed-Solomon. Thanks to Berlekamp-Massey, we can solve the
+following recurrence for the terms $\Lambda_k$ given at least $n \ge 2e$
+syndromes $s_i$:
 
-The easiest thing to do is brute force, just plug in every location
+$$
+\Lambda(i) = s_i = \sum_{k=1}^e \Lambda_k s_{i-k}
+$$
+
+These terms define our error-locator polynomial, which we can use to
+find the locations of errors:
+
+$$
+\Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k
+$$
+
+All we have left to do is figure out where $\Lambda(X_j^{-1})=0$, since
+these will be the locations of our errors.
+
+The easiest way to do this is brute force. Just plug in every location
 $X_j=g^j$ in our codeword. If $\Lambda(X_j^{-1}) = 0$, we know $X_j$ is
 the location of an error.
 
