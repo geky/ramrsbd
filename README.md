@@ -369,9 +369,9 @@ $S_e, S_{e+1}, \dots, S_{n-1}$:
 We can in turn describe this LFSR as a [recurrence relation][recurrence-relation]
 like so:
 
-$$
+``` math
 \Lambda(i) = s_i = \sum_{k=1}^e \Lambda_k s_{i-k}
-$$
+```
 
 Berlekamp-Massey relies on two key observations:
 
@@ -380,48 +380,53 @@ Berlekamp-Massey relies on two key observations:
    $s_0, s_1, \dots, s_{n-1}, s_n$, than an LFSR $L'$ that generates the
    sequence must have a size of at least:
 
-   $$
+   $`
    |L'| \ge n+1-|L|
-   $$
+   `$
 
    Massey's proof of this gets a bit wild.
 
    Consider the equation for our LFSR $L$:
    
-   $$
+   $`
    L(n) = \sum_{k=1}^{|L|} L_k s_{n-k}
-   $$
+   `$
 
    If we have another LFSR $L'$ that generates
    $s_{n-|L|}, s_{n-|L|+1}, \cdots, s_{n-1}$, we can substitute it in for
    $s_{n-k}$:
 
-   $$
-   L(n) = \sum_{k=1}^{|L|} L_k L'(n-k)
-        = \sum_{k=1}^{|L|} L_k \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k-k'}
-   $$
+   $`
+   \begin{aligned}
+   L(n) &= \sum_{k=1}^{|L|} L_k s_{n-k} \\
+        &= \sum_{k=1}^{|L|} L_k L'(n-k) \\
+        &= \sum_{k=1}^{|L|} L_k \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k-k'} \\
+   \end{aligned}
+   `$
 
-   Multiplication in is distributive, so we can move our summations
-   around:
+   Multiplication is distributive, so we can move our summations around:
    
-   $$
+   $`
    L(n) = \sum_{k'=1}^{|L'|} L'_{k'} \sum_{k=1}^{|L|} L_k s_{n-k-k'}
-   $$
+   `$
 
-   Note the right summation looks like $L$. If $L$ generates
+   Note the right summation looks a lot like $L$. If $L$ generates
    $s_{n-|L'|}, s_{n-|L'|+1}, \cdots, s_{n-1}$, we can replace it with
    $s_{n-k'}$:
    
-   $$
-   L(n) = \sum_{k'=1}^{|L'|} L'_{k'} L(n-k')
-        = \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k'}
-   $$
+   $`
+   \begin{aligned}
+   L(n) &= \sum_{k'=1}^{|L'|} L'_{k'} \sum_{k=1}^{|L|} L_k s_{n-k-k'} \\
+        &= \sum_{k'=1}^{|L'|} L'_{k'} L(n-k') \\
+        &= \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k'}
+   \end{aligned}
+   `$
    
    Oh hey! That's the definition of $L'$:
 
-   $$
+   $`
    L(n) = L'(n) = s_n
-   $$
+   `$
 
    So if $L'$ generates $s_n$, $L$ also generates $s_n$.
 
@@ -440,38 +445,38 @@ Berlekamp-Massey relies on two key observations:
    $s_0, s_1, \cdots, s_{n-1}$, but failed at $s_n$. We call the
    difference from the expected symbol the discrepancy $d$:
 
-   $$  
+   $`
    L(i) = \sum_{k=1}^{|L|} L_k s_{i-k} =  
    \begin{cases}  
    s_i & i = |L|, |L|+1, \cdots, n-1 \\  
    s_i+d & i = n  
    \end{cases}  
-   $$  
+   `$  
 
    If we know $s_i$ (which requires a larger LFSR), we can rearrange this
    to be a bit more useful. We call this our connection polynomial $C$:
 
-   $$  
+   $`
    C(i) = d^{-1}\left(s_i - \sum_{k=1}^{|L|} L_k s_{i-k}\right) =  
    \begin{cases}  
    0 & i = |L|, |L|+1,\cdots,n-1 \\  
    1 & i = n  
    \end{cases}  
-   $$
+   `$
 
    Now, if we have a larger LFSR $L'$ with size $|L'| \gt |L|$, and we
    want to change only the symbol $s'_n$ by $d'$, we can just add
    $d' C(i)$ to it:
 
-   $$
+   $`
    L'(i) + d' C(i) =
    \begin{cases}
    s'_i & i = |L'|,|L'|+1,\cdots,n-1 \\
    s'_i + d' & i = n
    \end{cases}
-   $$
+   `$
 
-If you can wrap your head around those two observations, you'll have
+If you can wrap your head around those two observations, you have
 understood most of Berlekamp-Massey.
 
 The actual algorithm itself is relatively simple:  
@@ -480,45 +485,44 @@ The actual algorithm itself is relatively simple:
    calculate the discrepancy $d$ between $s'_n$ and the expected symbol
    $s_n$:
 
-   $$
+   $`
    d = s'_n - s_n
-   $$  
+   `$
   
 2. If $d=0$, great! Move on to the next symbol.  
   
-3. If $d \ne 0$, we need to tweak our LFSR.
+3. If $d \ne 0$, we need to tweak our LFSR:
 
    1. First check if our LFSR is big enough. If $n \ge 2|L|$, we need a
       bigger LFSR:
 
-      $$
+      $`
       |L'| = n+1-|L|
-      $$
+      `$
 
       If we're changing the size, save the current LFSR for future
       tweaks:
 
-      $$
+      $`
       C'(i) = d^{-1} L(i)
-      $$
+      `$
 
-      $$
+      $`
       m = n
-      $$
+      `$
 
    2. Now we can fix the LFSR by adding our last $C$ (not $C'$!),
       shifting and scaling so only $s_n$ is affected:
 
-      $$
+      $`
       L'(i) = L(i) + d C(i-(n-m))
-      $$
+      `$
 
-      Though usually we don't bother to track $m$ explicitly, we
-      can instead shift $C$ by 1 every step so it ends up in the right
+      Though usually we don't bother to track $m$ explicitly. Instead,
+      we can shift $C$ by 1 every step so it ends up in the right
       location.
 
 This is all implemented in [ramrsbd_find_l][ramrsbd_find_l].
-
 
 #### Solving binary LFSRs for fun and profit
 
