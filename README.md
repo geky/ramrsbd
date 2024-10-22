@@ -241,7 +241,7 @@ This polynomial has some rather useful properties:
 
    $`
    \begin{aligned}
-   1 - X_j x &= 1 - X_j X_j^-1 \\
+   1 - X_j x &= 1 - X_j X_j^{-1} \\
              &= 1 - 1 \\
              &= 0
    \end{aligned}
@@ -736,16 +736,16 @@ Coming back to Reed-Solomon. Thanks to Berlekamp-Massey, we can solve the
 following recurrence for the terms $\Lambda_k$ given at least $n \ge 2e$
 syndromes $s_i$:
 
-$$
+``` math
 \Lambda(i) = s_i = \sum_{k=1}^e \Lambda_k s_{i-k}
-$$
+```
 
 These terms define our error-locator polynomial, which we can use to
 find the locations of errors:
 
-$$
+``` math
 \Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k
-$$
+```
 
 All we have left to do is figure out where $\Lambda(X_j^{-1})=0$, since
 these will be the locations of our errors.
@@ -766,34 +766,34 @@ magnitudes $Y_j$ is relatively straightforward. Kind of.
 
 Recall the definition of our syndromes $S_i$:
 
-$$
+``` math
 S_i = \sum_{j \in e} Y_j X_j^i
-$$
+```
 
 With $e$ syndromes, this can be rewritten as a system of equations with
 $e$ equations and $e$ unknowns, our error magnitudes $Y_j$, which we can
 solve for:
 
-$$  
+``` math
 \begin{bmatrix}  
-S_0 \\  
-S_1 \\  
-\vdots \\  
-S_{e-1} \\  
-\end{bmatrix} =  
-\begin{bmatrix}  
-1 & 1 & \dots & 1\\  
-X_{j_0} & X_{j_1} & \dots & X_{j_{e-1}}\\  
-\vdots & \vdots & \ddots & \vdots \\  
-X_{j_0}^{e-1} & X_{j_1}^{e-1} & \dots & X_{j_{e-1}}^{e-1}\\  
+S_0 \\
+S_1 \\
+\vdots \\
+S_{e-1}
+\end{bmatrix} =
+\begin{bmatrix}
+1 & 1 & \dots & 1 \\
+X_{j_0} & X_{j_1} & \dots & X_{j_{e-1}} \\
+\vdots & \vdots & \ddots & \vdots \\
+X_{j_0}^{e-1} & X_{j_1}^{e-1} & \dots & X_{j_{e-1}}^{e-1}
+\end{bmatrix}
+\begin{bmatrix}
+Y_{j_0} \\
+Y_{j_1} \\
+\vdots \\
+Y_{j_{e-1}}
 \end{bmatrix}  
-\begin{bmatrix}  
-Y_{j_0}\\  
-Y_{j_1}\\  
-\vdots \\  
-Y_{j_{e-1}}\\  
-\end{bmatrix}  
-$$
+```
 
 #### Forney's algorithm
 
@@ -805,23 +805,23 @@ for $Y_j$ directly, called [Forney's algorithm][forneys-algorithm].
 Assuming we know an error-locator $X_j$, plug it into the following
 formula to find an error-magnitude $Y_j$:
 
-$$
-Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^)}
-$$
+``` math
+Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}
+```
 
 Where $\Omega(x)$, called the error-evaluator polynomial, is defined like
 so:
 
-$$
+``` math
 \Omega(x) = S(x) \Lambda(x) \bmod x^n
-$$
+```
 
 And $\Lambda'(x)$, the [formal derivative][formal-derivative] of the
 error-locator, can be calculated by terms like so:
 
-$$
+``` math
 \Lambda'(x) = \sum_{i=1}^2 i \cdot \Lambda_i x^{i-1}
-$$
+```
 
 Though note $i$ is not a field element, so multiplication by $i$
 represents normal repeated addition. And since addition is xor in our
@@ -835,37 +835,41 @@ Haha, I know right? Where did this equation come from? How does it work?
 How did Forney even come up with this?
 
 To be honest I don't know the answer to most of these questions, there's
-very little documentation online about this formula comes from. But at
-the very least we can prove that it works.
+very little documentation online about where this formula comes from.
+
+But at the very least we can prove that it works.
 
 #### The error-evaluator polynomial
 
 Let us start with the syndrome polynomial $S(x)$:
 
-$$
+``` math
 S(x) = \sum_{i=0}^n S_i x^i
-$$
+```
 
 Substituting the definition of $S_i$:
 
-$$
-S(x) = \sum_{i=0}^n \sum_{j \in e} Y_j X_j^i x^i
-     = \sum_{j \in e} \left(Y_j \sum_{i=0}^n X_j^i x^i\right)
-$$
+``` math
+\begin{aligned}
+S(x) &= \sum_{i=0}^n \sum_{j \in e} Y_j X_j^i x^i \\
+     &= \sum_{j \in e} \left(Y_j \sum_{i=0}^n X_j^i x^i\right)
+\end{aligned}
+```
 
-The sum on the right side turns out to be a geometric series that we can
-substitute in:
+The sum on the right side turns out to be a [geometric series][geometric-series]:
 
-$$
+``` math
 S(x) = \sum_{j \in e} Y_j \frac{1 - X_j^n x^n}{1 - X_j x}
-$$
+```
 
 If we then multiply with our error-locator polynomial $\Lambda(x)$:
 
-$$
-S(x)\Lambda(x) = \sum_{j \in e} \left(Y_j \frac{1 - X_j^n x^n}{1 - X_j x}\right) \cdot \prod_{k=0}^e \left(1 - X_k x\right)
-               = \sum_{j \in e} \left(Y_j \left(1 - X_j^n x^n\right) \prod_{k \ne j} \left(1 - X_k x\right)\right)
-$$
+``` math
+\begin{aligned}
+S(x)\Lambda(x) &= \sum_{j \in e} \left(Y_j \frac{1 - X_j^n x^n}{1 - X_j x}\right) \cdot \prod_{k=0}^e \left(1 - X_k x\right) \\
+               &= \sum_{j \in e} \left(Y_j \left(1 - X_j^n x^n\right) \prod_{k \ne j} \left(1 - X_k x\right)\right)
+\end{aligned}
+```
 
 We see exactly one term in each summand (TODO summand??) cancel out.
 
@@ -874,45 +878,45 @@ thanks to the error-locator polynomial $\Lambda(x)$.
 
 But if we expand the multiplication, something interesting happens:
 
-$$
+``` math
 S(x)\Lambda(x) = \sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right) - \sum_{j \in e} \left(Y_j X_j^n x^n \prod_{k \ne j} \left(1 - X_k x\right)\right)
-$$
+```
 
 On the left side of the subtraction, all terms are at _most_ degree
-$x^{e-1}$. On the gith side of the subtraction, all terms are at _least_
+$x^{e-1}$. On the right side of the subtraction, all terms are at _least_
 degree $x^n$.
 
 Imagine how these contribute to the expanded form of the equation:
 
-$$
+``` math
 S(x)\Lambda(x) = \overbrace{\Omega_0 + \dots + \Omega_{e-1} x^{e-1}}^{\sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right)} + \overbrace{\Omega_n x^n + \dots + \Omega_{n+e-1} x^{n+e-1}}^{\sum_{j \in e} \left(Y_j X_j^n x^n \prod_{k \ne j} \left(1 - X_k x\right)\right)  }
-$$
+```
 
 If we truncate this polynomial, $\bmod n$ in math land, we can
 effectively delete part of the equation:
 
-$$
-S(x)\Lambda(x) \bmod x^n= \overbrace{\Omega_0 + \dots + \Omega_{e-1} x^{e-1}}^{\sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right)}
-$$
+``` math
+S(x)\Lambda(x) \bmod x^n = \overbrace{\Omega_0 + \dots + \Omega_{e-1} x^{e-1}}^{\sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right)}
+```
 
 Giving us the equation for the error-evaluator polynomial $\Omega(x)$:
 
-$$
+``` math
 \Omega(x) = S(x)\Lambda(x) \bmod x^n = \sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right)
-$$
+```
 
 What's really neat about the error-evaluator polynomial $\Omega(x)$ is
 that $k \ne j$ condition.
 
 The error-evaluator polynomial $\Omega(x)$ still contains a big chunk of
 the error-locator polynomial $\Lambda(x)$. If we plug in an
-error-location, $X_{j'}_{-1}$, _most_ of the terms evaluate to zero,
-except the one where $j' \eq j$!
+error-location, $X_{j'}^{-1}$, _most_ of the terms evaluate to zero,
+except the one where $j' = j$!
 
-$$
+``` math
 \Omega(X_{j'}^{-1}) = \sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k X_{j'}^{-1}\right)\right)
                     = Y_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)
-$$
+```
 
 And right there is our error-magnitude, $Y_{j'}$! Sure it's multiplied
 with a bunch of gobbledygook, but it is there.
@@ -937,13 +941,13 @@ But derivatives are so useful mathematicians use them anyways.
 Applying a formal derivative looks a lot like a normal derivative in
 normal math:
 
-$$
+``` math
 f(x) = f_0 + f_1 x + f_2 x^2 + \dots + f_i x^i
-$$
+```
 
-$$
-f'(x) = f_1 + 2 f_2 x + \dots + i \cdot f_i x^{i-1}
-$$
+``` math
+f'(x) = f_1 + 2 \cdot f_2 x + \dots + i \cdot f_i x^{i-1}
+```
 
 Except $i$ here is not a finite-field element, so instead of doing
 finite-field multiplication, we do normal repeated addition. And since
@@ -952,66 +956,68 @@ addition is xor in our field, this just cancels out every other term.
 Quite a few properties of derivatives still hold in finite-fields. Of
 particular interest to us is the product rule:
 
-$$
+``` math
 \left(f(x) g(x)\right)' = f'(x) g(x) + f(x) g'(x)
-$$
+```
 
-$$
+``` math
 \left(\prod_{i=0}^n f_i(x)\right)' = \sum_{i=0}^n \left(f_i'(x) \prod_{j \ne i} f_j(x)\right)
-$$
+```
 
 Applying this to our error-locator polynomial $\Lambda(x):
 
-$$
+``` math
 \Lambda(x) = 1 + \sum_{i=1}^e \Lambda_i x^i
-$$
+```
 
-$$
+``` math
 \Lambda'(x) = \sum_{i=1}^e i \Lambda_i x^{i-1}
-$$
+```
 
 Recall the other definition of our error-locator polynomial $\Lambda(x)$:
 
-$$
+``` math
 \Lambda(x) = \prod_{j \in e} \left(1 - X_j x\right)
-$$
+```
 
-$$
+``` math
 \Lambda'(x) = \left(\prod_{j \in e} \left(1 - X_j x\right)\right)'
-$$
+```
 
 Applying the product rule:
 
-$$
+``` math
 \Lambda'(x) = \sum_{j \in e} \left(X_j \prod_{k \ne j} \left(1 - X_k x\right)\right)
-$$
+```
 
 Starting to look familiar?
 
 Just like the error-evaluator polynomial $\Omega(x)$, plugging in an
 error-location $X_{j'}^{-1}$ causes most of the terms to evaluate to
-zero, except the one where $j' \eq j$, revealing $X_j$ times our
+zero, except the one where $j' = j$, revealing $X_j$ times our
 gobbledygook!
 
-$$
-\Lambda'(X_{j'}^{-1}) = \sum_{j \in e} \left(X_j \prod_{k \ne j} \left(1 - X_k X_{j'}^{-1}\right)\right)
-                      = X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)
-$$
+``` math
+\begin{aligned}
+\Lambda'(X_{j'}^{-1}) &= \sum_{j \in e} \left(X_j \prod_{k \ne j} \left(1 - X_k X_{j'}^{-1}\right)\right) \\
+                      &= X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)
+\end{aligned}
+```
 
 If we divide $\Omega(X_{j'}^{-1})$ by $\Lambda'(X_{j'}^{-1})$, all that
 gobbledygook cancels out, leaving us with a simply equation containing
 $Y_{j'}$ and $X_{j'}$:
 
-$$
+``` math
 \frac{\Omega(X_{j'}^{-1}}{\Lambda'(X_{j'}^{-1})} = \frac{Y_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)}{X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)} = \frac{Y_{j'}}{X_{j'}}
-$$
+```
 
 All that's left is to cancel out the $X_{j'}$ term to get our
-error-magnitude $Y_{j'}$:
+error-magnitude $Y_{j'}$!
 
-$$
+``` math
 \frac{X_{j'} \Omega(X_{j'}^{-1}}{\Lambda'(X_{j'}^{-1})} = \frac{X_{j'} Y_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)}{X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)} = Y_{j'}
-$$
+```
 
 #### Putting it all together
 
@@ -1033,9 +1039,9 @@ $Y_j$ into the codeword to fix this error!
 Repeat for all errors in the malformed codeword $C'(x)$, and with any
 luck we should find the original codeword $C(x)$!
 
-$$
+``` math
 C(x) = C'(x) - \sum_{j \in e} Y_j x^j
-$$
+```
 
 But we're not quite done. All of this math assumed we had
 $e \le \frac{n}{2}$ errors. If we had more errors, it's possible we just
@@ -1044,9 +1050,9 @@ made things worse.
 It's worth recalculating the syndromes after repairing errors to see if
 we did ended up with a valid codeword:
 
-$$
+``` math
 S_i = C(g^i) = 0
-$$
+```
 
 If the syndromes are all zero, chances are high we successfully repaired
 our codeword.
