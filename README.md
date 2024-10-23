@@ -243,33 +243,34 @@ syndromes $S_i$:
 
 <p align="center">
 <img
-    alt="S_i = C'(g^i) = \sum_{j \in e} Y_j X_j^i"
-    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20C%27%28g%5ei%29%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei"
+    alt="S_i = C'(g^i) = E(g^i) = \sum_{j \in E} Y_j X_j^i"
+    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20C%27%28g%5ei%29%20%3d%20E%28g%5ei%29%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei"
 >
 </p>
 
-The next step is figuring our the locations of our errors $X_j$.
+The next step is figuring out the error-locations, $X_j$.
 
-To help with this, we introduce another polynomial, the "error-locator
-polynomial" $\Lambda(x)$:
+To help with this, we introduce a very special polynomial, the
+"error-locator polynomial", $\Lambda(x)$:
 
 <p align="center">
 <img
-    alt="\Lambda(x) = \prod_{j \in e} \left(1 - X_j x\right)"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cprod_%7bj%20%5cin%20e%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
+    alt="\Lambda(x) = \prod_{j \in E} \left(1 - X_j x\right)"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cprod_%7bj%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
 >
 </p>
 
 This polynomial has some rather useful properties:
 
-1. For any $X_j$, $\Lambda(X_j^{-1}) = 0$.
+1. For any error-location, $X_j$, $\Lambda(X_j^{-1}) = 0$.
 
-   This is for similar reasons why $P(g^i) = 0$. For any $X_j$:
+   This is for similar reasons why $P(g^i) = 0$. For any error-location
+   $X_j$:
 
    <p align="center">
    <img
-       alt="\begin{aligned} 1 - X_j x &= 1 - X_j X_j^{-1} \\ &= 1 - 1 \\ &= 0 \end{aligned}"
-       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%31%20%2d%20X_j%20x%20%26%3d%20%31%20%2d%20X_j%20X_j%5e%7b%2d%31%7d%20%5c%5c%20%26%3d%20%31%20%2d%20%31%20%5c%5c%20%26%3d%20%30%20%5cend%7baligned%7d"
+       alt="\begin{aligned} 1 - X_j X_j^{-1} &= 1 - 1 \\ &= 0 \end{aligned}"
+       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%31%20%2d%20X_j%20X_j%5e%7b%2d%31%7d%20%26%3d%20%31%20%2d%20%31%20%5c%5c%20%26%3d%20%30%20%5cend%7baligned%7d"
    >
    </p>
 
@@ -282,29 +283,34 @@ This polynomial has some rather useful properties:
 
    <p align="center">
    <img
-       alt="\begin{aligned} \Lambda(0) &= \prod_{j \in e} \left(1 - X_j 0\right) \\ &= \prod_{j \in e} 1 \\ &= 1 \end{aligned}"
-       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cLambda%28%30%29%20%26%3d%20%5cprod_%7bj%20%5cin%20e%7d%20%5cleft%28%31%20%2d%20X_j%20%30%5cright%29%20%5c%5c%20%26%3d%20%5cprod_%7bj%20%5cin%20e%7d%20%31%20%5c%5c%20%26%3d%20%31%20%5cend%7baligned%7d"
+       alt="\begin{aligned} \Lambda(0) &= \prod_{j \in E} \left(1 - X_j \cdot 0\right) \\ &= \prod_{j \in E} 1 \\ &= 1 \end{aligned}"
+       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cLambda%28%30%29%20%26%3d%20%5cprod_%7bj%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_j%20%5ccdot%20%30%5cright%29%20%5c%5c%20%26%3d%20%5cprod_%7bj%20%5cin%20E%7d%20%31%20%5c%5c%20%26%3d%20%31%20%5cend%7baligned%7d"
    >
    </p>
 
-   This prevents trivial solutions and is what makes $\Lambda(x)$ useful.
+   This 1 prevents trivial solutions, and is what makes $\Lambda(x)$
+   useful.
 
-But what's _really_ interesting, is that these two properties allow us to
+But what's _really_ interesting is that these two properties allow us to
 solve for $\Lambda(x)$ with only our syndromes $S_i$.
 
-First note that since $\Lambda(x)$ has $e$ roots, we can expand it into
-an $e$ degree polynomial. We also know that $\Lambda(0) = 1$, so the
-constant term must be 1. If we name the coefficients of this polynomial
-$\Lambda_k$, this gives us another definition of $\Lambda(x)$:
+We know $\Lambda(x)$ as $e$ roots, which means we can expand it into a
+polynomial with $e+1$ terms. We also know that $\Lambda(0) = 1$, so the
+constant term must be 1. Giving the coefficients of this expanded
+polynomial the arbitrary names
+$\Lambda_1, \Lambda_2, \cdots, \Lambda_e$, we end up with another
+definition of $\Lambda(x)$:
 
 <p align="center">
 <img
-    alt="\Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek"
+    alt="\Lambda(x) = 1 + \Lambda_1 x + \Lambda_2 x^2 + \cdots + \Lambda_e x^e = 1 + \sum_{k=1}^e \Lambda_k x^k"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5cLambda_%31%20x%20%2b%20%5cLambda_%32%20x%5e%32%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20x%5ee%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek"
 >
 </p>
 
-Plugging in $X_j^{-1}$ should still evaluate to zero:
+Note this doesn't change our error-locator, $\Lambda(x)$, it still has
+all of its original properties. For example, plugging in $X_j^{-1}$
+should still evaluate to zero:
 
 <p align="center">
 <img
@@ -318,8 +324,8 @@ say, $Y_j X_j^i$, and the result should still be zero:
 
 <p align="center">
 <img
-    alt="Y_j X_j^i \Lambda(X_j^{-1}) = Y_j X_j^i + \sum_{k=1}^e Y_j X_j^{i-k} \Lambda_k = 0"
-    src="https://latex.codecogs.com/svg.image?Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20Y_j%20X_j%5ei%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20Y_j%20X_j%5e%7bi%2dk%7d%20%5cLambda_k%20%3d%20%30"
+    alt="Y_j X_j^i \Lambda(X_j^{-1}) = Y_j X_j^i + \sum_{k=1}^e \Lambda_k Y_j X_j^{i-k} = 0"
+    src="https://latex.codecogs.com/svg.image?Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20Y_j%20X_j%5ei%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20Y_j%20X_j%5e%7bi%2dk%7d%20%3d%20%30"
 >
 </p>
 
@@ -328,8 +334,8 @@ zero:
 
 <p align="center">
 <img
-    alt="\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = \sum_{j \in e} \left(Y_j X_j^i + \sum_{k=1}^e Y_j X_j^{i-k} \Lambda_k\right) = 0"
-    src="https://latex.codecogs.com/svg.image?%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20X_j%5ei%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20Y_j%20X_j%5e%7bi%2dk%7d%20%5cLambda_k%5cright%29%20%3d%20%30"
+    alt="\sum_{j \in E} Y_j X_j^i \Lambda(X_j^{-1}) = \sum_{j \in E} \left(Y_j X_j^i + \sum_{k=1}^e \Lambda_k Y_j X_j^{i-k}\right) = 0"
+    src="https://latex.codecogs.com/svg.image?%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20%5cleft%28Y_j%20X_j%5ei%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20Y_j%20X_j%5e%7bi%2dk%7d%5cright%29%20%3d%20%30"
 >
 </p>
 
@@ -337,44 +343,44 @@ Wait a second...
 
 <p align="center">
 <img
-    alt="\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = \left(\sum_{j \in e} Y_j X_j^i\right) + \sum_{k=1}^e \left(\sum_{j \in e} Y_j X_j^{i-k}\right) \Lambda_k = 0"
-    src="https://latex.codecogs.com/svg.image?%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%5cleft%28%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei%5cright%29%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cleft%28%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5e%7bi%2dk%7d%5cright%29%20%5cLambda_k%20%3d%20%30"
+    alt="\sum_{j \in E} Y_j X_j^i \Lambda(X_j^{-1}) = \left(\sum_{j \in E} Y_j X_j^i\right) + \sum_{k=1}^e \Lambda_k \left(\sum_{j \in E} Y_j X_j^{i-k}\right) = 0"
+    src="https://latex.codecogs.com/svg.image?%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%5cleft%28%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei%5cright%29%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20%5cleft%28%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5e%7bi%2dk%7d%5cright%29%20%3d%20%30"
 >
 </p>
 
-Aren't these our syndromes? $S_i$?
+Aren't these our syndromes? $S_i = \sum_{j \in E} Y_j X_j^i$?
 
 <p align="center">
 <img
-    alt="\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = S_i + \sum_{k=1}^e S_{i-k} \Lambda_k = 0"
-    src="https://latex.codecogs.com/svg.image?%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20S_i%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20S_%7bi%2dk%7d%20%5cLambda_k%20%3d%20%30"
+    alt="\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = S_i + \sum_{k=1}^e \Lambda_k S_{i-k} = 0"
+    src="https://latex.codecogs.com/svg.image?%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20S_i%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d%20%3d%20%30"
 >
 </p>
 
-We can rearrange this into an equation for $S_i$ using only our
-coefficients and $e$ previously seen syndromes $S_{i-k}$:
+They are! We can rearrange this into an equation for $S_i$ using only our
+coefficients, $\Lambda_k$, and $e$ previously seen syndromes,
+$S_{i-1}, S_{i-2}, \cdots, S_{i-e}$:
 
 <p align="center">
 <img
-    alt="S_i = \sum_{k=1}^e S_{i-k} \Lambda_k"
-    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20S_%7bi%2dk%7d%20%5cLambda_k"
+    alt="S_i = \Lambda_1 S_{i-1} + \Lambda_2 S_{i-2} + \cdots + \Lambda_e S_{i-e} = \sum_{k=1}^e \Lambda_k S_{i-k}"
+    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20%5cLambda_%31%20S_%7bi%2d%31%7d%20%2b%20%5cLambda_%32%20S_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20S_%7bi%2de%7d%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d"
 >
 </p>
 
-The only problem is this is one equation with $e$ unknowns, our
-coefficients $\Lambda_k$.
-
-But if we repeat this for $e$ syndromes, $S_{e}$ to $S_{n-1}$, we can
-build $e$ equations for $e$ unknowns, and create a system of equations
-that is solvable. This is why we need $n=2e$ syndromes/fixed-points to
-solve for $e$ errors:
+If we repeat this $e$ times, for syndromes
+$S_e, S_{e+1}, \cdots, S_{n-1}$, we end up with $e$ equations and
+$e$ unknowns. A system that is, in theory, solvable:
 
 <p align="center">
 <img
-    alt="\begin{bmatrix} S_{e} \\ S_{e+1} \\ \vdots \\ S_{n-1} \end{bmatrix} = \begin{bmatrix} S_{e-1} & S_{e-2} & \dots & S_0 \\ S_{e} & S_{e-1} & \dots & S_1 \\ \vdots & \vdots & \ddots & \vdots \\ S_{n-2} & S_{n-3} & \dots & S_{e-1} \end{bmatrix} \begin{bmatrix} \Lambda_1 \\ \Lambda_2 \\ \vdots \\ \Lambda_e \end{bmatrix}"
-    src="https://latex.codecogs.com/svg.image?%5cbegin%7bbmatrix%7d%20S_%7be%7d%20%5c%5c%20S_%7be%2b%31%7d%20%5c%5c%20%5cvdots%20%5c%5c%20S_%7bn%2d%31%7d%20%5cend%7bbmatrix%7d%20%3d%20%5cbegin%7bbmatrix%7d%20S_%7be%2d%31%7d%20%26%20S_%7be%2d%32%7d%20%26%20%5cdots%20%26%20S_%30%20%5c%5c%20S_%7be%7d%20%26%20S_%7be%2d%31%7d%20%26%20%5cdots%20%26%20S_%31%20%5c%5c%20%5cvdots%20%26%20%5cvdots%20%26%20%5cddots%20%26%20%5cvdots%20%5c%5c%20S_%7bn%2d%32%7d%20%26%20S_%7bn%2d%33%7d%20%26%20%5cdots%20%26%20S_%7be%2d%31%7d%20%5cend%7bbmatrix%7d%20%5cbegin%7bbmatrix%7d%20%5cLambda_%31%20%5c%5c%20%5cLambda_%32%20%5c%5c%20%5cvdots%20%5c%5c%20%5cLambda_e%20%5cend%7bbmatrix%7d"
+    alt="\begin{bmatrix} S_{e} \\ S_{e+1} \\ \vdots \\ S_{n-1} \end{bmatrix} = \begin{bmatrix} S_{e-1} & S_{e-2} & \cdots & S_0 \\ S_{e} & S_{e-1} & \cdots & S_1 \\ \vdots & \vdots & \ddots & \vdots \\ S_{n-2} & S_{n-3} & \cdots & S_{e-1} \end{bmatrix} \begin{bmatrix} \Lambda_1 \\ \Lambda_2 \\ \vdots \\ \Lambda_e \end{bmatrix}"
+    src="https://latex.codecogs.com/svg.image?%5cbegin%7bbmatrix%7d%20S_%7be%7d%20%5c%5c%20S_%7be%2b%31%7d%20%5c%5c%20%5cvdots%20%5c%5c%20S_%7bn%2d%31%7d%20%5cend%7bbmatrix%7d%20%3d%20%5cbegin%7bbmatrix%7d%20S_%7be%2d%31%7d%20%26%20S_%7be%2d%32%7d%20%26%20%5ccdots%20%26%20S_%30%20%5c%5c%20S_%7be%7d%20%26%20S_%7be%2d%31%7d%20%26%20%5ccdots%20%26%20S_%31%20%5c%5c%20%5cvdots%20%26%20%5cvdots%20%26%20%5cddots%20%26%20%5cvdots%20%5c%5c%20S_%7bn%2d%32%7d%20%26%20S_%7bn%2d%33%7d%20%26%20%5ccdots%20%26%20S_%7be%2d%31%7d%20%5cend%7bbmatrix%7d%20%5cbegin%7bbmatrix%7d%20%5cLambda_%31%20%5c%5c%20%5cLambda_%32%20%5c%5c%20%5cvdots%20%5c%5c%20%5cLambda_e%20%5cend%7bbmatrix%7d"
 >
 </p>
+
+This is where the $n=2e$ requirement comes from, and why we need $n=2e$
+syndromes to solve for $e$ errors at unknown locations.
 
 #### Berlekamp-Massey
 
@@ -383,10 +389,10 @@ still quite difficult.
 
 Enter the Berlekamp-Massey algorithm.
 
-The key observation here by Massey, is that solving for $\Lambda(x)$ is
-equivalent to constructing an LFSR, that when given the initial sequence
-$S_0, S_1, \dots, S_{e-1}$, generates the sequence
-$S_e, S_{e+1}, \dots, S_{n-1}$:
+The key observation by Massey, is that solving for $\Lambda(x)$ is
+equivalent to constructing an LFSR that generates the sequence
+$S_e, S_{e+1}, \dots, S_{n-1}$, given the initial state
+$S_0, S_1, \dots, S_{e-1}$:
 
 ```
 .---- + <- + <- + <- + <--- ... --- + <--.
@@ -394,26 +400,26 @@ $S_e, S_{e+1}, \dots, S_{n-1}$:
 |    *Λ1  *Λ2  *Λ3  *Λ4     ...   *Λe-1 *Λe
 |     ^    ^    ^    ^              ^    ^
 |   .-|--.-|--.-|--.-|--.--     --.-|--.-|--.
-'-> |Se-1|Se-2|Se-3|Se-4|   ...   | S1 | S0 | -> Sn-1 Sn-2 Sn-3 Sn-4 ... S1 S0
+'-> |Se-1|Se-2|Se-3|Se-4|   ...   | S1 | S0 | -> Sn-1 Sn-2 ... S2+3 Se+2 Se+1 Se Se-1 Se-2 ... S3 S2 S1 S0
     '----'----'----'----'--     --'----'----'
 ```
 
-We can in turn describe this LFSR as a [recurrence relation][recurrence-relation]
-like so:
+Such an LFSR can be described by a [recurrence relation][recurrence-relation]
+that probably looks a bit familiar:
 
 <p align="center">
 <img
-    alt="\Lambda(i) = s_i = \sum_{k=1}^e \Lambda_k s_{i-k}"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28i%29%20%3d%20s_i%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20s_%7bi%2dk%7d"
+    alt="L(i) = s_i = L_1 s_{i-1} + L_2 s_{i-2} + \cdots + L_{|L|} s_{i-|L|} = \sum_{k=1}^{|L|} L_k s_{i-k}"
+    src="https://latex.codecogs.com/svg.image?L%28i%29%20%3d%20s_i%20%3d%20L_%31%20s_%7bi%2d%31%7d%20%2b%20L_%32%20s_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20L_%7b%7cL%7c%7d%20s_%7bi%2d%7cL%7c%7d%20%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bi%2dk%7d"
 >
 </p>
 
 Berlekamp-Massey relies on two key observations:
 
 1. If an LFSR $L$ of size $|L|$ generates the sequence
-   $s_0, s_1, \dots, s_{n-1}$, but failed to generate the sequence
-   $s_0, s_1, \dots, s_{n-1}, s_n$, than an LFSR $L'$ that generates the
-   sequence must have a size of at least:
+   $s_0, s_1, \dots, s_{n-1}$, but fails to generate the sequence
+   $s_0, s_1, \dots, s_{n-1}, s_n$, than an LFSR $L'$ that _does_
+   generate the sequence must have a size of at least:
 
    <p align="center">
    <img
@@ -424,12 +430,12 @@ Berlekamp-Massey relies on two key observations:
 
    Massey's proof of this gets a bit wild.
 
-   Consider the equation for our LFSR $L$:
-   
+   Consider the equation for our LFSR $L$ at $n$:
+
    <p align="center">
    <img
-       alt="L(n) = \sum_{k=1}^{|L|} L_k s_{n-k}"
-       src="https://latex.codecogs.com/svg.image?L%28n%29%20%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dk%7d"
+       alt="L(n) = \sum_{k=1}^{|L|} L_k s_{n-k} \ne s_n"
+       src="https://latex.codecogs.com/svg.image?L%28n%29%20%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dk%7d%20%5cne%20s_n"
    >
    </p>
 
@@ -439,28 +445,28 @@ Berlekamp-Massey relies on two key observations:
 
    <p align="center">
    <img
-       alt="\begin{aligned} L(n) &= \sum_{k=1}^{|L|} L_k s_{n-k} \\ &= \sum_{k=1}^{|L|} L_k L'(n-k) \\ &= \sum_{k=1}^{|L|} L_k \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k-k'} \\ \end{aligned}"
-       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20L%28n%29%20%26%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dk%7d%20%5c%5c%20%26%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20L%27%28n%2dk%29%20%5c%5c%20%26%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20%5csum_%7bk%27%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_%7bk%27%7d%20s_%7bn%2dk%2dk%27%7d%20%5c%5c%20%5cend%7baligned%7d"
+       alt="\begin{aligned} L(n) &= \sum_{k=1}^{|L|} L_k s_{n-k} \\ &= \sum_{k=1}^{|L|} L_k L'(n-k) \\ &= \sum_{k=1}^{|L|} L_k \sum_{l=1}^{|L'|} L'_l s_{n-k-l} \\ \end{aligned}"
+       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20L%28n%29%20%26%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dk%7d%20%5c%5c%20%26%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20L%27%28n%2dk%29%20%5c%5c%20%26%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20s_%7bn%2dk%2dl%7d%20%5c%5c%20%5cend%7baligned%7d"
    >
    </p>
 
    Multiplication is distributive, so we can move our summations around:
-   
+
    <p align="center">
    <img
-       alt="L(n) = \sum_{k'=1}^{|L'|} L'_{k'} \sum_{k=1}^{|L|} L_k s_{n-k-k'}"
-       src="https://latex.codecogs.com/svg.image?L%28n%29%20%3d%20%5csum_%7bk%27%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_%7bk%27%7d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dk%2dk%27%7d"
+       alt="L(n) = \sum_{l=1}^{|L'|} L'_l \sum_{k=1}^{|L|} L_k s_{n-l-k}"
+       src="https://latex.codecogs.com/svg.image?L%28n%29%20%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dl%2dk%7d"
    >
    </p>
 
-   Note the right summation looks a lot like $L$. If $L$ generates
+   And note that right summation looks a lot like $L$. If $L$ generates
    $s_{n-|L'|}, s_{n-|L'|+1}, \cdots, s_{n-1}$, we can replace it with
    $s_{n-k'}$:
-   
+
    <p align="center">
    <img
-       alt="\begin{aligned} L(n) &= \sum_{k'=1}^{|L'|} L'_{k'} \sum_{k=1}^{|L|} L_k s_{n-k-k'} \\ &= \sum_{k'=1}^{|L'|} L'_{k'} L(n-k') \\ &= \sum_{k'=1}^{|L'|} L'_{k'} s_{n-k'} \end{aligned}"
-       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20L%28n%29%20%26%3d%20%5csum_%7bk%27%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_%7bk%27%7d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dk%2dk%27%7d%20%5c%5c%20%26%3d%20%5csum_%7bk%27%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_%7bk%27%7d%20L%28n%2dk%27%29%20%5c%5c%20%26%3d%20%5csum_%7bk%27%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_%7bk%27%7d%20s_%7bn%2dk%27%7d%20%5cend%7baligned%7d"
+       alt="\begin{aligned} L(n) &= \sum_{l=1}^{|L'|} L'_l \sum_{k=1}^{|L|} L_k s_{n-l-k} \\ &= \sum_{l=1}^{|L'|} L'_l L(n-l) \\ &= \sum_{l=1}^{|L'|} L'_l s_{n-l} \end{aligned}""
+       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20L%28n%29%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dl%2dk%7d%20%5c%5c%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20L%28n%2dl%29%20%5c%5c%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20s_%7bn%2dl%7d%20%5cend%7baligned%7d%22"
    >
    </p>
    
@@ -473,7 +479,7 @@ Berlekamp-Massey relies on two key observations:
    >
    </p>
 
-   So if $L'$ generates $s_n$, $L$ also generates $s_n$.
+   So if $L'$ generates $s_n$, $L$ must also generate $s_n$.
 
    The only way to make $L'$ generate a different $s_n$ would be to make
    $|L'| \ge n+1-|L|$ so that $L$ can no longer generate
@@ -507,9 +513,9 @@ Berlekamp-Massey relies on two key observations:
    >
    </p>
 
-   Now, if we have a larger LFSR $L'$ with size $|L'| \gt |L|$, and we
-   want to change only the symbol $s'_n$ by $d'$, we can just add
-   $d' C(i)$ to it:
+   Now, if we have a larger LFSR $L'$ with size $|L'| \gt |L|$ and we
+   want to change only the symbol $s'_n$ by $d'$, we can add $d' C(i)$
+   and only $s'_n$ will be affected:
 
    <p align="center">
    <img
@@ -791,12 +797,12 @@ Is this a good compression algorithm? Probably not.
 
 Coming back to Reed-Solomon. Thanks to Berlekamp-Massey, we can solve the
 following recurrence for the terms $\Lambda_k$ given at least $n \ge 2e$
-syndromes $s_i$:
+syndromes $S_i$:
 
 <p align="center">
 <img
-    alt="\Lambda(i) = s_i = \sum_{k=1}^e \Lambda_k s_{i-k}"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28i%29%20%3d%20s_i%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20s_%7bi%2dk%7d"
+    alt="\Lambda(i) = S_i = \Lambda_1 S_{i-1} + \Lambda_2 S_{i-2} + \cdots + \Lambda_e S_{i-e} = \sum_{k=1}^e \Lambda_k S_{i-k}"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28i%29%20%3d%20S_i%20%3d%20%5cLambda_%31%20S_%7bi%2d%31%7d%20%2b%20%5cLambda_%32%20S_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20S_%7bi%2de%7d%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d"
 >
 </p>
 
@@ -805,17 +811,24 @@ find the locations of errors:
 
 <p align="center">
 <img
-    alt="\Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek"
+    alt="\Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k = \prod_{j \in E} \left(1 - X_j x\right)"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek%20%3d%20%5cprod_%7bj%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
 >
 </p>
 
 All we have left to do is figure out where $\Lambda(X_j^{-1})=0$, since
 these will be the locations of our errors.
 
-The easiest way to do this is brute force. Just plug in every location
-$X_j=g^j$ in our codeword. If $\Lambda(X_j^{-1}) = 0$, we know $X_j$ is
-the location of an error.
+The easiest way to do this is brute force: Just plug in every location
+$X_j=g^j$ in our codeword, and if $\Lambda(X_j^{-1}) = 0$, we know $X_j$ is
+the location of an error:
+
+<p align="center">
+<img
+    alt="E = \left\{j \mid \Lambda(X_j^{-1}) = 0\right\}"
+    src="https://latex.codecogs.com/svg.image?E%20%3d%20%5cleft%5c%7bj%20%5cmid%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%30%5cright%5c%7d"
+>
+</p>
 
 There are some other optimizations that can be applied here, mainly
 [Chien's search][chiens-search], but as far as I can tell this is more
