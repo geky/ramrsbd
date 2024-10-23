@@ -466,8 +466,8 @@ Berlekamp-Massey relies on two key observations:
 
    <p align="center">
    <img
-       alt="\begin{aligned} L(n) &= \sum_{l=1}^{|L'|} L'_l \sum_{k=1}^{|L|} L_k s_{n-l-k} \\ &= \sum_{l=1}^{|L'|} L'_l L(n-l) \\ &= \sum_{l=1}^{|L'|} L'_l s_{n-l} \end{aligned}""
-       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20L%28n%29%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dl%2dk%7d%20%5c%5c%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20L%28n%2dl%29%20%5c%5c%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20s_%7bn%2dl%7d%20%5cend%7baligned%7d%22"
+       alt="\begin{aligned} L(n) &= \sum_{l=1}^{|L'|} L'_l \sum_{k=1}^{|L|} L_k s_{n-l-k} \\ &= \sum_{l=1}^{|L'|} L'_l L(n-l) \\ &= \sum_{l=1}^{|L'|} L'_l s_{n-l} \end{aligned}"
+       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20L%28n%29%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bn%2dl%2dk%7d%20%5c%5c%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20L%28n%2dl%29%20%5c%5c%20%26%3d%20%5csum_%7bl%3d%31%7d%5e%7b%7cL%27%7c%7d%20L%27_l%20s_%7bn%2dl%7d%20%5cend%7baligned%7d"
    >
    </p>
    
@@ -831,8 +831,10 @@ using Horner's method and GF(256) log tables.
 
 #### Evaluating the errors
 
-Once we've found our error locations $X_j$, solving for the error
-magnitudes $Y_j$ is relatively straightforward. Kind of.
+Once we've found the error-locations, $X_j$, the next step is to find the
+error-magnitudes, $Y_j$.
+
+This step is relatively straightforward... kind of...
 
 Recall the definition of our syndromes $S_i$:
 
@@ -843,9 +845,8 @@ Recall the definition of our syndromes $S_i$:
 >
 </p>
 
-With $e$ syndromes, this can be rewritten as a system of equations with
-$e$ equations and $e$ unknowns, our error magnitudes $Y_j$, which we can
-solve for:
+With $e$ syndromes, this can be rewritten as a system with $e$ equations
+and $e$ unknowns, which we can, in theory, solve for:
 
 <p align="center">
 <img
@@ -861,18 +862,18 @@ But again, solving this system of equations is easier said than done.
 It turns out there's a really clever formula that can be used to solve
 for $Y_j$ directly, called [Forney's algorithm][forneys-algorithm].
 
-Assuming we know an error-locator $X_j$, plug it into the following
-formula to find an error-magnitude $Y_j$:
+Assuming we know an error-locator $X_j$, the following formula will spit
+out an error-magnitude $Y_j$:
 
 <p align="center">
 <img
-    alt="Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}"
-    src="https://latex.codecogs.com/svg.image?Y_j%20%3d%20%5cfrac%7bX_j%20%5cOmega%28X_j%5e%7b%2d%31%7d%29%7d%7b%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%7d"
+    alt="Y_j = X_j \frac{\Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}"
+    src="https://latex.codecogs.com/svg.image?Y_j%20%3d%20X_j%20%5cfrac%7b%5cOmega%28X_j%5e%7b%2d%31%7d%29%7d%7b%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%7d"
 >
 </p>
 
-Where $\Omega(x)$, called the error-evaluator polynomial, is defined like
-so:
+Where $\Omega(x)$, called the "error-evaluator polynomial", is defined
+like so:
 
 <p align="center">
 <img
@@ -881,17 +882,27 @@ so:
 >
 </p>
 
-And $\Lambda'(x)$, the [formal derivative][formal-derivative] of the
-error-locator, can be calculated by terms like so:
+$S(x)$, called the "syndrome polynomial", is defined like so (we just
+pretend our syndromes are a polynomial now):
 
 <p align="center">
 <img
-    alt="\Lambda'(x) = \sum_{i=1}^2 i \cdot \Lambda_i x^{i-1}"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5csum_%7bi%3d%31%7d%5e%32%20i%20%5ccdot%20%5cLambda_i%20x%5e%7bi%2d%31%7d"
+    alt="S(x) = S_0 + S_1 x + \cdots + S_{n-1} x^{n-1} = \sum_{i=0}^{n-1} S_i x^i"
+    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20S_%30%20%2b%20S_%31%20x%20%2b%20%5ccdots%20%2b%20S_%7bn%2d%31%7d%20x%5e%7bn%2d%31%7d%20%3d%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20S_i%20x%5ei"
 >
 </p>
 
-Though note $i$ is not a field element, so multiplication by $i$
+And $\Lambda'(x)$, the [formal derivative][formal-derivative] of the
+error-locator, can be calculated like so:
+
+<p align="center">
+<img
+    alt="\Lambda'(x) = \Lambda_1 + 2 \cdot \Lambda_2 x + \cdots + e \cdot \Lambda_e x^{e-1} = \sum_{k=1}^e k \cdot \Lambda_k x^{k-1}"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5cLambda_%31%20%2b%20%32%20%5ccdot%20%5cLambda_%32%20x%20%2b%20%5ccdots%20%2b%20e%20%5ccdot%20%5cLambda_e%20x%5e%7be%2d%31%7d%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20k%20%5ccdot%20%5cLambda_k%20x%5e%7bk%2d%31%7d"
+>
+</p>
+
+Though note $k$ is not a field element, so multiplication by $k$
 represents normal repeated addition. And since addition is xor in our
 field, this just cancels out every other term.
 
@@ -902,60 +913,63 @@ The end result is a simple formula for our error-magnitudes $Y_j$.
 Haha, I know right? Where did this equation come from? How does it work?
 How did Forney even come up with this?
 
-To be honest I don't know the answer to most of these questions, there's
-very little documentation online about where this formula comes from.
+I don't know the answer to most of these questions, there's very little
+documentation online about where/how/what this formula comes from.
 
-But at the very least we can prove that it works.
+But at the very least we can prove that it does work!
 
 #### The error-evaluator polynomial
 
-Let us start with the syndrome polynomial $S(x)$:
+Let's start with the syndrome polynomial $S(x)$:
 
 <p align="center">
 <img
-    alt="S(x) = \sum_{i=0}^n S_i x^i"
-    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20%5csum_%7bi%3d%30%7d%5en%20S_i%20x%5ei"
+    alt="S(x) = S_0 + S_1 x + \cdots + S_{n-1} x^{n-1} = \sum_{i=0}^{n-1} S_i x^i"
+    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20S_%30%20%2b%20S_%31%20x%20%2b%20%5ccdots%20%2b%20S_%7bn%2d%31%7d%20x%5e%7bn%2d%31%7d%20%3d%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20S_i%20x%5ei"
 >
 </p>
 
-Substituting the definition of $S_i$:
+Substituting in the definition of our syndromes,
+$S_i = \sum_{k \in E} Y_k X_k^i x^i$:
 
 <p align="center">
 <img
-    alt="\begin{aligned} S(x) &= \sum_{i=0}^n \sum_{j \in e} Y_j X_j^i x^i \\ &= \sum_{j \in e} \left(Y_j \sum_{i=0}^n X_j^i x^i\right) \end{aligned}"
-    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20S%28x%29%20%26%3d%20%5csum_%7bi%3d%30%7d%5en%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei%20x%5ei%20%5c%5c%20%26%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20%5csum_%7bi%3d%30%7d%5en%20X_j%5ei%20x%5ei%5cright%29%20%5cend%7baligned%7d"
+    alt="\begin{aligned} S(x) &= \sum_{i=0}^{n-1} \sum_{k \in E} Y_k X_k^i x^i \\ &= \sum_{k \in E} \left(Y_k \sum_{i=0}^{n-1} X_k^i x^i\right) \end{aligned}"
+    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20S%28x%29%20%26%3d%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20%5csum_%7bk%20%5cin%20E%7d%20Y_k%20X_k%5ei%20x%5ei%20%5c%5c%20%26%3d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20X_k%5ei%20x%5ei%5cright%29%20%5cend%7baligned%7d"
 >
 </p>
 
-The sum on the right side turns out to be a [geometric series][geometric-series]:
+The sum on the right turns out to be a [geometric series][geometric-series]:
 
 <p align="center">
 <img
-    alt="S(x) = \sum_{j \in e} Y_j \frac{1 - X_j^n x^n}{1 - X_j x}"
-    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20%5cfrac%7b%31%20%2d%20X_j%5en%20x%5en%7d%7b%31%20%2d%20X_j%20x%7d"
+    alt="S(x) = \sum_{k \in E} Y_k \frac{1 - X_k^n x^n}{1 - X_k x}"
+    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20%5csum_%7bk%20%5cin%20E%7d%20Y_k%20%5cfrac%7b%31%20%2d%20X_k%5en%20x%5en%7d%7b%31%20%2d%20X_k%20x%7d"
 >
 </p>
 
-If we then multiply with our error-locator polynomial $\Lambda(x)$:
+If we then multiply with our error-locator polynomial,
+$\Lambda(x) = \prod_{l \in E} \left(1 - X_l x\right)$:
 
 <p align="center">
 <img
-    alt="\begin{aligned} S(x)\Lambda(x) &= \sum_{j \in e} \left(Y_j \frac{1 - X_j^n x^n}{1 - X_j x}\right) \cdot \prod_{k=0}^e \left(1 - X_k x\right) \\ &= \sum_{j \in e} \left(Y_j \left(1 - X_j^n x^n\right) \prod_{k \ne j} \left(1 - X_k x\right)\right) \end{aligned}"
-    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20S%28x%29%5cLambda%28x%29%20%26%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20%5cfrac%7b%31%20%2d%20X_j%5en%20x%5en%7d%7b%31%20%2d%20X_j%20x%7d%5cright%29%20%5ccdot%20%5cprod_%7bk%3d%30%7d%5ee%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%20%5c%5c%20%26%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20%5cleft%28%31%20%2d%20X_j%5en%20x%5en%5cright%29%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29%20%5cend%7baligned%7d"
+    alt="\begin{aligned} S(x)\Lambda(x) &= \sum_{k \in E} \left(Y_k \frac{1 - X_k^n x^n}{1 - X_k x}\right) \cdot \prod_{l \in E} \left(1 - X_l x\right) \\ &= \sum_{k \in E} \left(Y_k \left(1 - X_k^n x^n\right) \prod_{l \ne k} \left(1 - X_l x\right)\right) \end{aligned}"
+    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20S%28x%29%5cLambda%28x%29%20%26%3d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20%5cfrac%7b%31%20%2d%20X_k%5en%20x%5en%7d%7b%31%20%2d%20X_k%20x%7d%5cright%29%20%5ccdot%20%5cprod_%7bl%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%20%5c%5c%20%26%3d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20%5cleft%28%31%20%2d%20X_k%5en%20x%5en%5cright%29%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%5cright%29%20%5cend%7baligned%7d"
 >
 </p>
 
-We see exactly one term in each summand (TODO summand??) cancel out.
+We see exactly one term in each summand cancel out, where $l = k$.
 
-At this point, if we plug in $X_j^{-1}$, this still evaluates to zero
-thanks to the error-locator polynomial $\Lambda(x)$.
+At this point, if we plug in $X_j^{-1}$, $S(X_j^{-1})\Lambda(X_j^{-1})$
+still evaluates to zero thanks to the error-locator polynomial
+$\Lambda(x)$.
 
 But if we expand the multiplication, something interesting happens:
 
 <p align="center">
 <img
-    alt="S(x)\Lambda(x) = \sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right) - \sum_{j \in e} \left(Y_j X_j^n x^n \prod_{k \ne j} \left(1 - X_k x\right)\right)"
-    src="https://latex.codecogs.com/svg.image?S%28x%29%5cLambda%28x%29%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29%20%2d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20X_j%5en%20x%5en%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29"
+    alt="S(x)\Lambda(x) = \sum_{k \in E} \left(Y_k \prod_{l \ne k} \left(1 - X_l x\right)\right) - \sum_{k \in E} \left(Y_k X_k^n x^n \prod_{l \ne k} \left(1 - X_l x\right)\right)"
+    src="https://latex.codecogs.com/svg.image?S%28x%29%5cLambda%28x%29%20%3d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%5cright%29%20%2d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20X_k%5en%20x%5en%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%5cright%29"
 >
 </p>
 
@@ -967,54 +981,55 @@ Imagine how these contribute to the expanded form of the equation:
 
 <p align="center">
 <img
-    alt="S(x)\Lambda(x) = \overbrace{\Omega_0 + \dots + \Omega_{e-1} x^{e-1}}^{\sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right)} + \overbrace{\Omega_n x^n + \dots + \Omega_{n+e-1} x^{n+e-1}}^{\sum_{j \in e} \left(Y_j X_j^n x^n \prod_{k \ne j} \left(1 - X_k x\right)\right) }"
-    src="https://latex.codecogs.com/svg.image?S%28x%29%5cLambda%28x%29%20%3d%20%5coverbrace%7b%5cOmega_%30%20%2b%20%5cdots%20%2b%20%5cOmega_%7be%2d%31%7d%20x%5e%7be%2d%31%7d%7d%5e%7b%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29%7d%20%2b%20%5coverbrace%7b%5cOmega_n%20x%5en%20%2b%20%5cdots%20%2b%20%5cOmega_%7bn%2be%2d%31%7d%20x%5e%7bn%2be%2d%31%7d%7d%5e%7b%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20X_j%5en%20x%5en%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29%20%7d"
+    alt="S(x)\Lambda(x) = \overbrace{\Omega_0 + \Omega_1 x + \cdots + \Omega_{e-1} x^{e-1}}^{\sum_{k \in E} \left(Y_k \prod_{l \ne k} \left(1 - X_l x\right)\right)} + \overbrace{\Omega_n x^n + \Omega_{n+1} x^{n+1} + \cdots + \Omega_{n+e-1} x^{n+e-1}}^{\sum_{k \in E} \left(Y_k X_k^n x^n \prod_{l \ne k} \left(1 - X_l x\right)\right) }"
+    src="https://latex.codecogs.com/svg.image?S%28x%29%5cLambda%28x%29%20%3d%20%5coverbrace%7b%5cOmega_%30%20%2b%20%5cOmega_%31%20x%20%2b%20%5ccdots%20%2b%20%5cOmega_%7be%2d%31%7d%20x%5e%7be%2d%31%7d%7d%5e%7b%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%5cright%29%7d%20%2b%20%5coverbrace%7b%5cOmega_n%20x%5en%20%2b%20%5cOmega_%7bn%2b%31%7d%20x%5e%7bn%2b%31%7d%20%2b%20%5ccdots%20%2b%20%5cOmega_%7bn%2be%2d%31%7d%20x%5e%7bn%2be%2d%31%7d%7d%5e%7b%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20X_k%5en%20x%5en%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%5cright%29%20%7d"
 >
 </p>
 
 If we truncate this polynomial, $\bmod n$ in math land, we can
-effectively delete part of the equation:
+effectively delete part of this equation:
 
 <p align="center">
 <img
-    alt="S(x)\Lambda(x) \bmod x^n = \overbrace{\Omega_0 + \dots + \Omega_{e-1} x^{e-1}}^{\sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right)}"
-    src="https://latex.codecogs.com/svg.image?S%28x%29%5cLambda%28x%29%20%5cbmod%20x%5en%20%3d%20%5coverbrace%7b%5cOmega_%30%20%2b%20%5cdots%20%2b%20%5cOmega_%7be%2d%31%7d%20x%5e%7be%2d%31%7d%7d%5e%7b%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29%7d"
+    alt="S(x)\Lambda(x) \bmod x^n = \overbrace{\Omega_0 + \Omega_1 x + \dots + \Omega_{e-1} x^{e-1}}^{\sum_{k \in E} \left(Y_k \prod_{l \ne k} \left(1 - X_l x\right)\right)}"
+    src="https://latex.codecogs.com/svg.image?S%28x%29%5cLambda%28x%29%20%5cbmod%20x%5en%20%3d%20%5coverbrace%7b%5cOmega_%30%20%2b%20%5cOmega_%31%20x%20%2b%20%5cdots%20%2b%20%5cOmega_%7be%2d%31%7d%20x%5e%7be%2d%31%7d%7d%5e%7b%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%5cright%29%7d"
 >
 </p>
 
-Giving us the equation for the error-evaluator polynomial $\Omega(x)$:
+Giving us the equation for the error-evaluator polynomial, $\Omega(x)$:
 
 <p align="center">
 <img
-    alt="\Omega(x) = S(x)\Lambda(x) \bmod x^n = \sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k x\right)\right)"
-    src="https://latex.codecogs.com/svg.image?%5cOmega%28x%29%20%3d%20S%28x%29%5cLambda%28x%29%20%5cbmod%20x%5en%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29"
+    alt="\Omega(x) = S(x)\Lambda(x) \bmod x^n = \sum_{k \in E} \left(Y_k \prod_{l \ne k} \left(1 - X_l x\right)\right)"
+    src="https://latex.codecogs.com/svg.image?%5cOmega%28x%29%20%3d%20S%28x%29%5cLambda%28x%29%20%5cbmod%20x%5en%20%3d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%5cright%29"
 >
 </p>
 
-What's really neat about the error-evaluator polynomial $\Omega(x)$ is
-that $k \ne j$ condition.
+Now what's really neat about the error-evaluator polynomial,
+$\Omega(x)$, is that $l \ne k$ condition.
 
-The error-evaluator polynomial $\Omega(x)$ still contains a big chunk of
-the error-locator polynomial $\Lambda(x)$. If we plug in an
-error-location, $X_{j'}^{-1}$, _most_ of the terms evaluate to zero,
-except the one where $j' = j$!
+The error-evaluator polynomial, $\Omega(x)$, still contains a big chunk
+of our error-locator polynomial, $\Lambda(x)$, so if we plug in an
+error-location, $X_j^{-1}$, _most_ of the terms evaluate to zero.
+Except one! The one where $j = k$:
 
 <p align="center">
 <img
-    alt="\Omega(X_{j'}^{-1}) = \sum_{j \in e} \left(Y_j \prod_{k \ne j} \left(1 - X_k X_{j'}^{-1}\right)\right) = Y_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)"
-    src="https://latex.codecogs.com/svg.image?%5cOmega%28X_%7bj%27%7d%5e%7b%2d%31%7d%29%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28Y_j%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20X_%7bj%27%7d%5e%7b%2d%31%7d%5cright%29%5cright%29%20%3d%20Y_%7bj%27%7d%20%5cprod_%7bk%20%5cne%20j%27%7d%20%5cleft%28%31%20%2d%20X_k%20X_%7bj%27%7d%5e%7b%2d%31%7d%5cright%29"
+    alt="\begin{aligned} \Omega(X_j^{-1}) &= \sum_{k \in E} \left(Y_k \prod_{l \ne k} \left(1 - X_l X_j^{-1}\right)\right) \\ &= Y_j \prod_{l \ne j} \left(1 - X_l X_j^{-1}\right) \end{aligned}"
+    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cOmega%28X_j%5e%7b%2d%31%7d%29%20%26%3d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28Y_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%5cright%29%20%5c%5c%20%26%3d%20Y_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%20%5cend%7baligned%7d"
 >
 </p>
 
-And right there is our error-magnitude, $Y_{j'}$! Sure it's multiplied
-with a bunch of gobbledygook, but it is there.
+And right there is our error-magnitude, $Y_j$! Sure we end up with a
+bunch of extra gobbledygook, but $Y_j$ _is_ there.
 
-Fortunately that gobbledygook contains only our error-locators $X_k$,
-which we know and in theory can remove with a bit of math.
+The good news is all that gobbledygook depends only on our
+error-locations, $X_j$, which we _do_ know and can in theory remove with
+a bit of math.
 
 #### The formal derivative of the error-locator polynomial
 
-But Forney has another trick up his sleeve: The
+But Forney has one last trick up his sleeve: The
 [formal derivative][formal-derivative] of the error-locator polynomial,
 $\Lambda'(x)$.
 
@@ -1031,8 +1046,8 @@ normal math:
 
 <p align="center">
 <img
-    alt="f(x) = f_0 + f_1 x + f_2 x^2 + \dots + f_i x^i"
-    src="https://latex.codecogs.com/svg.image?f%28x%29%20%3d%20f_%30%20%2b%20f_%31%20x%20%2b%20f_%32%20x%5e%32%20%2b%20%5cdots%20%2b%20f_i%20x%5ei"
+    alt="f(x) = f_0 + f_1 x + \cdots + f_i x^i"
+    src="https://latex.codecogs.com/svg.image?f%28x%29%20%3d%20f_%30%20%2b%20f_%31%20x%20%2b%20%5ccdots%20%2b%20f_i%20x%5ei"
 >
 </p>
 
@@ -1059,8 +1074,8 @@ particular interest to us is the product rule:
 
 <p align="center">
 <img
-    alt="\left(\prod_{i=0}^n f_i(x)\right)' = \sum_{i=0}^n \left(f_i'(x) \prod_{j \ne i} f_j(x)\right)"
-    src="https://latex.codecogs.com/svg.image?%5cleft%28%5cprod_%7bi%3d%30%7d%5en%20f_i%28x%29%5cright%29%27%20%3d%20%5csum_%7bi%3d%30%7d%5en%20%5cleft%28f_i%27%28x%29%20%5cprod_%7bj%20%5cne%20i%7d%20f_j%28x%29%5cright%29"
+    alt="\left(\prod_{i=0}^{n-1} f_i(x)\right)' = \sum_{i=0}^{n-1} \left(f_i'(x) \prod_{j \ne i} f_j(x)\right)"
+    src="https://latex.codecogs.com/svg.image?%5cleft%28%5cprod_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20f_i%28x%29%5cright%29%27%20%3d%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20%5cleft%28f_i%27%28x%29%20%5cprod_%7bj%20%5cne%20i%7d%20f_j%28x%29%5cright%29"
 >
 </p>
 
@@ -1068,15 +1083,15 @@ Applying this to our error-locator polynomial $\Lambda(x)$:
 
 <p align="center">
 <img
-    alt="\Lambda(x) = 1 + \sum_{i=1}^e \Lambda_i x^i"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5csum_%7bi%3d%31%7d%5ee%20%5cLambda_i%20x%5ei"
+    alt="\Lambda(x) = 1 + \Lambda_1 x + \Lambda_2 x^2 + \cdots + \Lambda_e x^e = 1 + \sum_{k=1}^e \Lambda_k x^k"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5cLambda_%31%20x%20%2b%20%5cLambda_%32%20x%5e%32%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20x%5ee%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek"
 >
 </p>
 
 <p align="center">
 <img
-    alt="\Lambda'(x) = \sum_{i=1}^e i \cdot \Lambda_i x^{i-1}"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5csum_%7bi%3d%31%7d%5ee%20i%20%5ccdot%20%5cLambda_i%20x%5e%7bi%2d%31%7d"
+    alt="\Lambda'(x) = \Lambda_1 + 2 \cdot \Lambda_2 x + \cdots + e \cdot \Lambda_e x^{e-1} = \sum_{k=1}^e k \cdot \Lambda_k x^{k-1}"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5cLambda_%31%20%2b%20%32%20%5ccdot%20%5cLambda_%32%20x%20%2b%20%5ccdots%20%2b%20e%20%5ccdot%20%5cLambda_e%20x%5e%7be%2d%31%7d%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20k%20%5ccdot%20%5cLambda_k%20x%5e%7bk%2d%31%7d"
 >
 </p>
 
@@ -1084,15 +1099,15 @@ Recall the other definition of our error-locator polynomial $\Lambda(x)$:
 
 <p align="center">
 <img
-    alt="\Lambda(x) = \prod_{j \in e} \left(1 - X_j x\right)"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cprod_%7bj%20%5cin%20e%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
+    alt="\Lambda(x) = \prod_{k \in E} \left(1 - X_k x\right)"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cprod_%7bk%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29"
 >
 </p>
 
 <p align="center">
 <img
-    alt="\Lambda'(x) = \left(\prod_{j \in e} \left(1 - X_j x\right)\right)'"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5cleft%28%5cprod_%7bj%20%5cin%20e%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29%5cright%29%27"
+    alt="\Lambda'(x) = \left(\prod_{k \in E} \left(1 - X_k x\right)\right)'"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5cleft%28%5cprod_%7bk%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29%27"
 >
 </p>
 
@@ -1100,51 +1115,51 @@ Applying the product rule:
 
 <p align="center">
 <img
-    alt="\Lambda'(x) = \sum_{j \in e} \left(X_j \prod_{k \ne j} \left(1 - X_k x\right)\right)"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28X_j%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20x%5cright%29%5cright%29"
+    alt="\Lambda'(x) = \sum_{k \in E} \left(X_k \prod_{l \ne k} \left(1 - X_l x\right)\right)"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28X_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20x%5cright%29%5cright%29"
 >
 </p>
 
 Starting to look familiar?
 
-Just like the error-evaluator polynomial $\Omega(x)$, plugging in an
-error-location $X_{j'}^{-1}$ causes most of the terms to evaluate to
-zero, except the one where $j' = j$, revealing $X_j$ times our
+Just like the error-evaluator polynomial, $\Omega(x)$, plugging in an
+error-location $X_j^{-1}$ causes _most_ of the terms to evaluate to
+zero, except the one where $j = k$, revealing $X_j$ times our
 gobbledygook!
 
 <p align="center">
 <img
-    alt="\begin{aligned} \Lambda'(X_{j'}^{-1}) &= \sum_{j \in e} \left(X_j \prod_{k \ne j} \left(1 - X_k X_{j'}^{-1}\right)\right) \\ &= X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right) \end{aligned}"
-    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cLambda%27%28X_%7bj%27%7d%5e%7b%2d%31%7d%29%20%26%3d%20%5csum_%7bj%20%5cin%20e%7d%20%5cleft%28X_j%20%5cprod_%7bk%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_k%20X_%7bj%27%7d%5e%7b%2d%31%7d%5cright%29%5cright%29%20%5c%5c%20%26%3d%20X_%7bj%27%7d%20%5cprod_%7bk%20%5cne%20j%27%7d%20%5cleft%28%31%20%2d%20X_k%20X_%7bj%27%7d%5e%7b%2d%31%7d%5cright%29%20%5cend%7baligned%7d"
+    alt="\begin{aligned} \Lambda'(X_j^{-1}) &= \sum_{k \in e} \left(X_k \prod_{l \ne k} \left(1 - X_l X_j^{-1}\right)\right) \\ &= X_j \prod_{l \ne j} \left(1 - X_l X_j^{-1}\right) \end{aligned}"
+    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%20%26%3d%20%5csum_%7bk%20%5cin%20e%7d%20%5cleft%28X_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%5cright%29%20%5c%5c%20%26%3d%20X_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%20%5cend%7baligned%7d"
 >
 </p>
 
-If we divide $\Omega(X_{j'}^{-1})$ by $\Lambda'(X_{j'}^{-1})$, all that
-gobbledygook cancels out, leaving us with a simply equation containing
-$Y_{j'}$ and $X_{j'}$:
+If we divide $\Omega(X_j^{-1})$ by $\Lambda'(X_j^{-1})$, all that
+gobbledygook cancels out, leaving us with a simply equation of only
+$Y_j$ and $X_j$:
 
 <p align="center">
 <img
-    alt="\frac{\Omega(X_{j'}^{-1}}{\Lambda'(X_{j'}^{-1})} = \frac{Y_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)}{X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)} = \frac{Y_{j'}}{X_{j'}}"
-    src="https://latex.codecogs.com/svg.image?%5cfrac%7b%5cOmega%28X_%7bj%27%7d%5e%7b%2d%31%7d%7d%7b%5cLambda%27%28X_%7bj%27%7d%5e%7b%2d%31%7d%29%7d%20%3d%20%5cfrac%7bY_%7bj%27%7d%20%5cprod_%7bk%20%5cne%20j%27%7d%20%5cleft%28%31%20%2d%20X_k%20X_%7bj%27%7d%5e%7b%2d%31%7d%5cright%29%7d%7bX_%7bj%27%7d%20%5cprod_%7bk%20%5cne%20j%27%7d%20%5cleft%28%31%20%2d%20X_k%20X_%7bj%27%7d%5e%7b%2d%31%7d%5cright%29%7d%20%3d%20%5cfrac%7bY_%7bj%27%7d%7d%7bX_%7bj%27%7d%7d"
+    alt="\frac{\Omega(X_j^{-1})}{\Lambda'(X_j^{-1})} = \frac{Y_j \prod_{l \ne j} \left(1 - X_l X_j^{-1}\right)}{X_j \prod_{l \ne j} \left(1 - X_l X_j^{-1}\right)} = \frac{Y_j}{X_j}"
+    src="https://latex.codecogs.com/svg.image?%5cfrac%7b%5cOmega%28X_j%5e%7b%2d%31%7d%29%7d%7b%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%7d%20%3d%20%5cfrac%7bY_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%7d%7bX_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%7d%20%3d%20%5cfrac%7bY_j%7d%7bX_j%7d"
 >
 </p>
 
-All that's left is to cancel out the $X_{j'}$ term to get our
-error-magnitude $Y_{j'}$!
+All that's left is to cancel out the $X_j$ term to get our
+error-magnitude, $Y_j$!
 
 <p align="center">
 <img
-    alt="\frac{X_{j'} \Omega(X_{j'}^{-1}}{\Lambda'(X_{j'}^{-1})} = \frac{X_{j'} Y_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)}{X_{j'} \prod_{k \ne j'} \left(1 - X_k X_{j'}^{-1}\right)} = Y_{j'}"
-    src="https://latex.codecogs.com/svg.image?%5cfrac%7bX_%7bj%27%7d%20%5cOmega%28X_%7bj%27%7d%5e%7b%2d%31%7d%7d%7b%5cLambda%27%28X_%7bj%27%7d%5e%7b%2d%31%7d%29%7d%20%3d%20%5cfrac%7bX_%7bj%27%7d%20Y_%7bj%27%7d%20%5cprod_%7bk%20%5cne%20j%27%7d%20%5cleft%28%31%20%2d%20X_k%20X_%7bj%27%7d%5e%7b%2d%31%7d%5cright%29%7d%7bX_%7bj%27%7d%20%5cprod_%7bk%20%5cne%20j%27%7d%20%5cleft%28%31%20%2d%20X_k%20X_%7bj%27%7d%5e%7b%2d%31%7d%5cright%29%7d%20%3d%20Y_%7bj%27%7d"
+    alt="X_j \frac{\Omega(X_j^{-1})}{\Lambda'(X_j^{-1})} = X_j \frac{Y_j \prod_{l \ne j} \left(1 - X_l X_j^{-1}\right)}{X_j \prod_{l \ne j} \left(1 - X_l X_j^{-1}\right)} = Y_j"
+    src="https://latex.codecogs.com/svg.image?X_j%20%5cfrac%7b%5cOmega%28X_j%5e%7b%2d%31%7d%29%7d%7b%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%7d%20%3d%20X_j%20%5cfrac%7bY_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%7d%7bX_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%7d%20%3d%20Y_j"
 >
 </p>
 
 #### Putting it all together
 
-Once we've figured out the error-locator polynomial $\Lambda(x)$, the
-error-evaluator polynomial $\Omega(x)$, and the derivative of the
-error-locator polynomial $\Lambda'(x)$, we get to the fun part: Fixing
+Once we've figured out the error-locator polynomial, $\Lambda(x)$, the
+error-evaluator polynomial, $\Omega(x)$, and the derivative of the
+error-locator polynomial, $\Lambda'(x)$, we get to the fun part: Fixing
 the errors!
 
 For each location $j$ in the malformed codeword $C'(x)$, calculate the
@@ -1162,8 +1177,8 @@ luck we should find the original codeword $C(x)$!
 
 <p align="center">
 <img
-    alt="C(x) = C'(x) - \sum_{j \in e} Y_j x^j"
-    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20x%5ej"
+    alt="C(x) = C'(x) - \sum_{j \in E} Y_j x^j"
+    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20x%5ej"
 >
 </p>
 
