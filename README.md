@@ -509,19 +509,19 @@ Berlekamp-Massey relies on two key observations:
 
    <p align="center">
    <img
-       alt="C(i) = d^{-1}\left(-s_i + \sum_{k=1}^{|L|} L_k s_{i-k}\right) = \begin{cases} 0 & i = |L|, |L|+1,\cdots,n-1 \\ 1 & i = n \end{cases}"
-       src="https://latex.codecogs.com/svg.image?C%28i%29%20%3d%20d%5e%7b%2d%31%7d%5cleft%28%2ds_i%20%2b%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bi%2dk%7d%5cright%29%20%3d%20%5cbegin%7bcases%7d%20%30%20%26%20i%20%3d%20%7cL%7c%2c%20%7cL%7c%2b%31%2c%5ccdots%2cn%2d%31%20%5c%5c%20%31%20%26%20i%20%3d%20n%20%5cend%7bcases%7d"
+       alt="C(i) = d^{-1} \cdot \left(-s_i + \sum_{k=1}^{|L|} L_k s_{i-k}\right) = \begin{cases} 0 & i = |L|, |L|+1,\cdots,n-1 \\ 1 & i = n \end{cases}"
+       src="https://latex.codecogs.com/svg.image?C%28i%29%20%3d%20d%5e%7b%2d%31%7d%20%5ccdot%20%5cleft%28%2ds_i%20%2b%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bi%2dk%7d%5cright%29%20%3d%20%5cbegin%7bcases%7d%20%30%20%26%20i%20%3d%20%7cL%7c%2c%20%7cL%7c%2b%31%2c%5ccdots%2cn%2d%31%20%5c%5c%20%31%20%26%20i%20%3d%20n%20%5cend%7bcases%7d"
    >
    </p>
 
    Now, if we have a larger LFSR $L'$ with size $|L'| \gt |L|$ and we
-   want to change only the symbol $s'_n$ by $d'$, we can add $d' C(i)$
-   and only $s'_n$ will be affected:
+   want to change only the symbol $s'_n$ by $d'$, we can add
+   $d' \cdot C(i)$, and only $s'_n$ will be affected:
 
    <p align="center">
    <img
-       alt="L'(i) + d' C(i) = \begin{cases} s'_i & i = |L'|,|L'|+1,\cdots,n-1 \\ s'_i + d' & i = n \end{cases}"
-       src="https://latex.codecogs.com/svg.image?L%27%28i%29%20%2b%20d%27%20C%28i%29%20%3d%20%5cbegin%7bcases%7d%20s%27_i%20%26%20i%20%3d%20%7cL%27%7c%2c%7cL%27%7c%2b%31%2c%5ccdots%2cn%2d%31%20%5c%5c%20s%27_i%20%2b%20d%27%20%26%20i%20%3d%20n%20%5cend%7bcases%7d"
+       alt="L'(i) + d' \cdot C(i) = \begin{cases} s'_i & i = |L'|,|L'|+1,\cdots,n-1 \\ s'_i + d' & i = n \end{cases}"
+       src="https://latex.codecogs.com/svg.image?L%27%28i%29%20%2b%20d%27%20%5ccdot%20C%28i%29%20%3d%20%5cbegin%7bcases%7d%20s%27_i%20%26%20i%20%3d%20%7cL%27%7c%2c%7cL%27%7c%2b%31%2c%5ccdots%2cn%2d%31%20%5c%5c%20s%27_i%20%2b%20d%27%20%26%20i%20%3d%20n%20%5cend%7bcases%7d"
    >
    </p>
 
@@ -555,20 +555,13 @@ The actual algorithm itself is relatively simple:
       >
       </p>
 
-      If we're changing the size, save the current LFSR for future
-      tweaks:
+      If we're changing the size, save the best LFSR at the current size
+      for future tweaks:
 
       <p align="center">
       <img
-          alt="C'(i) = d^{-1} L(i)"
-          src="https://latex.codecogs.com/svg.image?C%27%28i%29%20%3d%20d%5e%7b%2d%31%7d%20L%28i%29"
-      >
-      </p>
-
-      <p align="center">
-      <img
-          alt="m = n"
-          src="https://latex.codecogs.com/svg.image?m%20%3d%20n"
+          alt="C'(i) = d^{-1} \cdot L(i)"
+          src="https://latex.codecogs.com/svg.image?C%27%28i%29%20%3d%20d%5e%7b%2d%31%7d%20%5ccdot%20L%28i%29"
       >
       </p>
 
@@ -577,14 +570,14 @@ The actual algorithm itself is relatively simple:
 
       <p align="center">
       <img
-          alt="L'(i) = L(i) + d C(i-(n-m))"
-          src="https://latex.codecogs.com/svg.image?L%27%28i%29%20%3d%20L%28i%29%20%2b%20d%20C%28i%2d%28n%2dm%29%29"
+          alt="L'(i) = L(i) + d \cdot C(i-(n-m))"
+          src="https://latex.codecogs.com/svg.image?L%27%28i%29%20%3d%20L%28i%29%20%2b%20d%20%5ccdot%20C%28i%2d%28n%2dm%29%29"
       >
       </p>
 
-      Though usually we don't bother to track $m$ explicitly. Instead,
-      we can shift $C$ by 1 every step so it ends up in the right
-      location.
+      Where $m$ is the value of $n$ when we saved the last $C$. Though if
+      we shift $C$ every step of the algorithm, we usually don't need to
+      track $m$ explicitly.
 
 This is all implemented in [ramrsbd_find_l][ramrsbd_find_l].
 
