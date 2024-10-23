@@ -46,7 +46,8 @@ corrected:
 Reed-Solomon codes are sort of the big brother to CRCs. Operating on
 bytes instead of bits, they are both flexible and powerful, capable of
 detecting and correcting a configurable number of byte errors
-efficiently, in $O(ne + e^2)$.
+efficiently, $O\left(ne + e^2\right)$ vs the naive $O\left(n^e\right)$
+in ramcrc32bd.
 
 The only tradeoff is they are quite a bit more complex mathematically,
 which adds code and RAM cost. TODO measure this.
@@ -309,7 +310,7 @@ definition of $\Lambda(x)$:
 </p>
 
 Note this doesn't change our error-locator, $\Lambda(x)$, it still has
-all of its original properties. For example, plugging in $X_j^{-1}$
+all of its original properties. For example, if we plug in $X_j^{-1}$, it
 should still evaluate to zero:
 
 <p align="center">
@@ -508,8 +509,8 @@ Berlekamp-Massey relies on two key observations:
 
    <p align="center">
    <img
-       alt="C(i) = d^{-1}\left(s_i - \sum_{k=1}^{|L|} L_k s_{i-k}\right) = \begin{cases} 0 & i = |L|, |L|+1,\cdots,n-1 \\ 1 & i = n \end{cases}"
-       src="https://latex.codecogs.com/svg.image?C%28i%29%20%3d%20d%5e%7b%2d%31%7d%5cleft%28s_i%20%2d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bi%2dk%7d%5cright%29%20%3d%20%5cbegin%7bcases%7d%20%30%20%26%20i%20%3d%20%7cL%7c%2c%20%7cL%7c%2b%31%2c%5ccdots%2cn%2d%31%20%5c%5c%20%31%20%26%20i%20%3d%20n%20%5cend%7bcases%7d"
+       alt="C(i) = d^{-1}\left(-s_i + \sum_{k=1}^{|L|} L_k s_{i-k}\right) = \begin{cases} 0 & i = |L|, |L|+1,\cdots,n-1 \\ 1 & i = n \end{cases}"
+       src="https://latex.codecogs.com/svg.image?C%28i%29%20%3d%20d%5e%7b%2d%31%7d%5cleft%28%2ds_i%20%2b%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bi%2dk%7d%5cright%29%20%3d%20%5cbegin%7bcases%7d%20%30%20%26%20i%20%3d%20%7cL%7c%2c%20%7cL%7c%2b%31%2c%5ccdots%2cn%2d%31%20%5c%5c%20%31%20%26%20i%20%3d%20n%20%5cend%7bcases%7d"
    >
    </p>
 
@@ -830,10 +831,10 @@ the location of an error:
 >
 </p>
 
-There are some other optimizations that can be applied here, mainly
-[Chien's search][chiens-search], but as far as I can tell this is more
-useful for hardware implementations and doesn't actually improve our
-runtime when using Horner's method and GF(256) log tables.
+I've seen some other optimizations applied here, mainly
+[Chien's search][chiens-search], but as far as I can tell this is only
+really useful in hardware and doesn't actually improve our runtime when
+using Horner's method and GF(256) log tables.
 
 #### Evaluating the errors
 
