@@ -93,12 +93,12 @@ int ramrsbd_create(const struct lfs_config *cfg,
 
     // allocate error-locator buffer?
     if (bd->cfg->math_buffer) {
-        bd->l = (uint8_t*)bd->cfg->math_buffer
+        bd->λ = (uint8_t*)bd->cfg->math_buffer
                 + bd->cfg->code_size
                 + bd->cfg->ecc_size
                 + bd->cfg->ecc_size;
     } else {
-        bd->l = lfs_malloc(bd->cfg->ecc_size);
+        bd->λ = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
             RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
             return LFS_ERR_NOMEM;
@@ -107,13 +107,13 @@ int ramrsbd_create(const struct lfs_config *cfg,
 
     // allocate error-locator derivative buffer?
     if (bd->cfg->math_buffer) {
-        bd->dl = (uint8_t*)bd->cfg->math_buffer
+        bd->dλ = (uint8_t*)bd->cfg->math_buffer
                 + bd->cfg->code_size
                 + bd->cfg->ecc_size
                 + bd->cfg->ecc_size
                 + bd->cfg->ecc_size;
     } else {
-        bd->dl = lfs_malloc(bd->cfg->ecc_size);
+        bd->dλ = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
             RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
             return LFS_ERR_NOMEM;
@@ -122,13 +122,13 @@ int ramrsbd_create(const struct lfs_config *cfg,
 
     // calculate generator polynomial
     //
-    // P(x) = prod_i^ecc_size { x - g^i }
+    // P(x) = prod_i^n (x - g^i)
     //
     // the important property of P(x) is that it evaluates to 0
-    // at every x=g^i for i < ecc_size
+    // at every x=g^i for i < n
     //
-    // normally P(x) needs ecc_size+1 terms, but the leading term
-    // is always 1, so we can make it implicit
+    // normally P(x) needs n+1 terms, but the leading term is always 1,
+    // so we can make it implicit
     //
     
     // let P(x) = 1
@@ -136,10 +136,10 @@ int ramrsbd_create(const struct lfs_config *cfg,
     bd->p[bd->cfg->ecc_size-1] = 1;
 
     for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
-        // let R(x) = x + g^i
+        // let R(x) = x - g^i
         uint8_t r[2] = {1, ramrsbd_gf_pow(RAMRSBD_GF_G, i)};
 
-        // let P'(x) = P(x) * R(x)
+        // let P(x) = P(x) * R(x)
         ramrsbd_gf_p_mul(
                 bd->p, bd->cfg->ecc_size,
                 r, 2);
@@ -160,8 +160,8 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
         lfs_free(bd->c);
         lfs_free(bd->p);
         lfs_free(bd->s);
-        lfs_free(bd->l);
-        lfs_free(bd->dl);
+        lfs_free(bd->λ);
+        lfs_free(bd->dλ);
     }
     RAMRSBD_TRACE("ramrsbd_destroy -> %d", 0);
     return 0;
@@ -181,8 +181,8 @@ static bool ramrsbd_find_s(
         // let S_i = C(g^i)
         //
         // note that because C(x) is a multiple of P(x), and P(x) is zero
-        // at every x=g^i for i < ecc_size, this should also be zero
-        // if no errors are present
+        // at every x=g^i for i < n, this should also be zero if no
+        // errors are present
         //
         s[i] = ramrsbd_gf_p_eval(
                 c, c_size,
@@ -197,33 +197,33 @@ static bool ramrsbd_find_s(
     return s_zero;
 }
 
-// find the error-locator polynomial, L(x), given a set of syndromes, S,
+// find the error-locator polynomial, Λ(x), given a set of syndromes, S,
 // with C providing scratch space for interim math
 //
-// L(x) = prod_i=0^n { 1 - X_i x }
+// Λ(x) = prod_i=0^e (1 - X_i x)
 //
 // also returns the number of errors for convenience
-static lfs_size_t ramrsbd_find_l(
-        uint8_t *l, lfs_size_t l_size,
+static lfs_size_t ramrsbd_find_λ(
+        uint8_t *λ, lfs_size_t λ_size,
         uint8_t *c, lfs_size_t c_size,
         const uint8_t *s, lfs_size_t s_size) {
-    LFS_ASSERT(c_size == l_size);
-    LFS_ASSERT(s_size == l_size);
+    LFS_ASSERT(c_size == λ_size);
+    LFS_ASSERT(s_size == λ_size);
 
     // iteratively find the error-locator using Berlekamp-Massey
     //
-    // this treats L as an LFSR we need to solve in GF(256)
+    // this treats Λ as an LFSR we need to solve in GF(256)
     //
 
     // guess an error-locator LFSR
     //
     // let e = 0    // guessed LFSR size/number of errors
-    // let L(i) = 1 // current LFSR guess
+    // let Λ(i) = 1 // current LFSR guess
     // let C(i) = 1 // best LFSR so far
     //
     lfs_size_t e = 0;
-    memset(l, 0, l_size-1);
-    l[l_size-1] = 1;
+    memset(λ, 0, λ_size-1);
+    λ[λ_size-1] = 1;
     memset(c, 0, c_size-1);
     c[c_size-1] = 1;
 
@@ -235,20 +235,20 @@ static lfs_size_t ramrsbd_find_l(
 
         // calculate next symbol discrepancy
         //
-        // let d = s_n - sum_i=1^e L_i S_n-i
+        // let d = S_n - sum_i=1^e Λ_i S_n-i
         //
         uint8_t d = s[s_size-1-n];
         for (lfs_size_t i = 1; i <= e; i++) {
             d ^= ramrsbd_gf_mul(
-                    l[l_size-1-i],
+                    λ[λ_size-1-i],
                     s[s_size-1-(n-i)]);
         }
 
         // found discrepancy?
         if (d != 0) {
-            // let L(i) = L(i) - d C(i)
+            // let Λ(i) = Λ(i) - d C(i)
             ramrsbd_gf_p_xors(
-                    l, l_size,
+                    λ, λ_size,
                     d,
                     c, c_size);
 
@@ -259,17 +259,17 @@ static lfs_size_t ramrsbd_find_l(
 
                 // save best LFSR for later
                 //
-                // this should be C(i) = d^-1 L(i), but before we
-                // modified L(i) = L(i) - d C(i), fortunately we can just
+                // this should be C(i) = d^-1 Λ(i), but before we
+                // modified Λ(i) = Λ(i) - d C(i), fortunately we can just
                 // undo the modification to avoid needing more memory:
                 //
-                // let C(i) = d^-1 (L(i) + d C(i))
-                //          = C(i) + d^-1 L(i)
+                // let C(i) = d^-1 (Λ(i) + d C(i))
+                //          = C(i) + d^-1 Λ(i)
                 //
                 ramrsbd_gf_p_xors(
                         c, c_size,
                         ramrsbd_gf_div(1, d),
-                        l, l_size);
+                        λ, λ_size);
             }
         }
     }
@@ -277,50 +277,50 @@ static lfs_size_t ramrsbd_find_l(
     return e;
 }
 
-// find the error-evaluator polynomial, E(x), given a set of
-// syndromes, S, and an error-locator polynomial, L(x)
+// find the error-evaluator polynomial, Ω(x), given a set of
+// syndromes, S, and an error-locator polynomial, Λ(x)
 //
-// E(x) = S(x) L(x) mod x^2n
+// Ω(x) = S(x) Λ(x) mod x^n
 //
-static void ramrsbd_find_e(
-        uint8_t *e, lfs_size_t e_size,
+static void ramrsbd_find_ω(
+        uint8_t *ω, lfs_size_t ω_size,
         const uint8_t *s, lfs_size_t s_size,
-        const uint8_t *l, lfs_size_t l_size) {
-    LFS_ASSERT(e_size == s_size);
-    LFS_ASSERT(e_size == l_size);
+        const uint8_t *λ, lfs_size_t λ_size) {
+    LFS_ASSERT(ω_size == s_size);
+    LFS_ASSERT(ω_size == λ_size);
 
-    // allow E(x)/S(x) to overlap
-    if (e != s) {
-        memcpy(e, s, s_size);
+    // allow Ω(x)/S(x) to overlap
+    if (ω != s) {
+        memcpy(ω, s, s_size);
     }
 
-    // let E(x) = S(x) L(x) mod x^2n
+    // let Ω(x) = S(x) Λ(x) mod x^n
     //
     // note that the mod is really just truncating the array, which
     // ramrsbd_gf_p_mul does implicitly if the array is too small
     //
     ramrsbd_gf_p_mul(
-            e, e_size,
-            l, l_size);
+            ω, ω_size,
+            λ, λ_size);
 }
 
 // find the formal derivative of the error-locator polynomial
 //
-// L(x)  = 1 + sum_i=1^n {         L_i   x^i     }
-// L'(x) =     sum_i=1^n { sum^i { L_i } x^(i-1) }
+// Λ(x)  = 1 + sum_i=1^n       Λ_i x^i
+// Λ'(x) =     sum_i=1^n sum^i Λ_i x^i-1
 //
-static void ramrsbd_find_dl(
-        uint8_t *dl, lfs_size_t dl_size,
-        const uint8_t *l, lfs_size_t l_size) {
-    LFS_ASSERT(dl_size == l_size);
+static void ramrsbd_find_dλ(
+        uint8_t *dλ, lfs_size_t dλ_size,
+        const uint8_t *λ, lfs_size_t λ_size) {
+    LFS_ASSERT(dλ_size == λ_size);
 
-    memset(dl, 0, dl_size);
-    for (lfs_size_t i = 1; i < l_size; i++) {
+    memset(dλ, 0, dλ_size);
+    for (lfs_size_t i = 1; i < λ_size; i++) {
         // the formal derivative defines each step as repeated addition,
         // but our addition is just xor, so we really just need to see
         // if this term cancels itself out
         if (i % 2 != 0) {
-            dl[dl_size-1-(i-1)] = l[l_size-1-i];
+            dλ[dλ_size-1-(i-1)] = λ[λ_size-1-i];
         }
     }
 }
@@ -358,10 +358,10 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
 
         // non-zero syndromes? errors are present, attempt to correct
         if (!s_zero) {
-            // find the error-locator polynomial, L(x)
-            lfs_size_t n = ramrsbd_find_l(
-                    bd->l, bd->cfg->ecc_size,
-                    bd->dl, bd->cfg->ecc_size,
+            // find the error-locator polynomial, Λ(x)
+            lfs_size_t n = ramrsbd_find_λ(
+                    bd->λ, bd->cfg->ecc_size,
+                    bd->dλ, bd->cfg->ecc_size,
                     bd->s, bd->cfg->ecc_size);
 
             // too many errors?
@@ -380,19 +380,20 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                 return LFS_ERR_CORRUPT;
             }
 
-            // find the error evaluator polynomial, E(x)
-            ramrsbd_find_e(
+            // find the error evaluator polynomial, Ω(x)
+            ramrsbd_find_ω(
                     bd->s, bd->cfg->ecc_size,
                     bd->s, bd->cfg->ecc_size,
-                    bd->l, bd->cfg->ecc_size);
+                    bd->λ, bd->cfg->ecc_size);
 
-            // find the formal derivative of L(x)
-            ramrsbd_find_dl(
-                    bd->dl, bd->cfg->ecc_size,
-                    bd->l, bd->cfg->ecc_size);
+            // find the formal derivative of Λ(x)
+            ramrsbd_find_dλ(
+                    bd->dλ, bd->cfg->ecc_size,
+                    bd->λ, bd->cfg->ecc_size);
 
-            // brute force search for error locations, this is any location i
-            // where g^-(code_size-1-i) is a root of our error-locator
+            // brute force search for error locations, this is any
+            // location X_i=g^i where X_i^-1 is a root of our
+            // error-locator, Λ(X_i^-1) = 0
             for (lfs_size_t i = 0; i < bd->cfg->code_size; i++) {
                 // map the error location to the multiplicative ring
                 //
@@ -405,10 +406,10 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
 
                 // is X_i a root of our error-locator?
                 //
-                // does L(X_i^-1) = 0?
+                // does Λ(X_i^-1) = 0?
                 //
                 if (ramrsbd_gf_p_eval(
-                            bd->l, bd->cfg->ecc_size,
+                            bd->λ, bd->cfg->ecc_size,
                             x_i_)
                         != 0) {
                     continue;
@@ -416,9 +417,9 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
 
                 // found an error location, now find its magnitude
                 //
-                //                E(X_i^-1)
+                //                Ω(X_i^-1)
                 // let Y_i = X_i ----------
-                //               L'(X_i^-1) 
+                //               Λ'(X_i^-1) 
                 //
                 uint8_t y_i = ramrsbd_gf_mul(
                         x_i,
@@ -427,7 +428,7 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                                 bd->s, bd->cfg->ecc_size,
                                 x_i_),
                             ramrsbd_gf_p_eval(
-                                bd->dl, bd->cfg->ecc_size,
+                                bd->dλ, bd->cfg->ecc_size,
                                 x_i_)));
 
                 // found error location and magnitude, now we can fix it!
@@ -487,7 +488,7 @@ int ramrsbd_prog(const struct lfs_config *cfg, lfs_block_t block,
                 = (off / (bd->cfg->code_size-bd->cfg->ecc_size))
                 * bd->cfg->code_size;
 
-        // calculate ecc
+        // calculate ecc of size n
         //
         // let C(x) = M(x) x^n + (M(x) x^n % P(x))
         //

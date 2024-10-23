@@ -72,16 +72,16 @@ typedef struct ramrsbd {
 
     // various buffers for internal math
 
-    // codeword buffer
+    // codeword buffer, C(x)
     uint8_t *c; // code_size
-    // generator polynomial with implied leading 1
+    // generator polynomial, P(x), with implied leading 1
     uint8_t *p; // ecc_size
-    // syndrome buffer
+    // syndrome buffer, S, doubles as the error-evaluator polynomial Ω(x)
     uint8_t *s; // ecc_size
-    // error-locator polynomial
-    uint8_t *l; // ecc_size
-    // derivative of the error-locator polynomial
-    uint8_t *dl; // ecc_size
+    // error-locator polynomial, Λ(x)
+    uint8_t *λ; // ecc_size
+    // derivative of the error-locator polynomial, Λ'(x)
+    uint8_t *dλ; // ecc_size
 } ramrsbd_t;
 
 
