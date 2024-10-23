@@ -184,8 +184,8 @@ to our original codeword, where $E(x)$ contains up to $e$ non-zero terms:
 
 <p align="center">
 <img
-    alt="E(x) = E_0 + E_1 x + \cdots + E_{|C|-1} x^{|C|-1} = \sum_{j \in E} E_j x^j"
-    src="https://latex.codecogs.com/svg.image?E%28x%29%20%3d%20E_%30%20%2b%20E_%31%20x%20%2b%20%5ccdots%20%2b%20E_%7b%7cC%7c%2d%31%7d%20x%5e%7b%7cC%7c%2d%31%7d%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20E_j%20x%5ej"
+    alt="E(x) = E_{j_0} x^{j_0} + E_{j_1} x^{j_1} + \cdots + E_{j_{e-1}} x^{j_{e-1}} = \sum_{j \in E} E_j x^j"
+    src="https://latex.codecogs.com/svg.image?E%28x%29%20%3d%20E_%7bj_%30%7d%20x%5e%7bj_%30%7d%20%2b%20E_%7bj_%31%7d%20x%5e%7bj_%31%7d%20%2b%20%5ccdots%20%2b%20E_%7bj_%7be%2d%31%7d%7d%20x%5e%7bj_%7be%2d%31%7d%7d%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20E_j%20x%5ej"
 >
 </p>
 
@@ -255,8 +255,8 @@ To help with this, we introduce a very special polynomial, the
 
 <p align="center">
 <img
-    alt="\Lambda(x) = \prod_{j \in E} \left(1 - X_j x\right)"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cprod_%7bj%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
+    alt="\Lambda(x) = \left(1 - X_{j_0} x\right)\left(1 - X_{j_1} x\right)\cdots\left(1 - X_{j_{e-1}} x\right) = \prod_{j \in E} \left(1 - X_j x\right)"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cleft%28%31%20%2d%20X_%7bj_%30%7d%20x%5cright%29%5cleft%28%31%20%2d%20X_%7bj_%31%7d%20x%5cright%29%5ccdots%5cleft%28%31%20%2d%20X_%7bj_%7be%2d%31%7d%7d%20x%5cright%29%20%3d%20%5cprod_%7bj%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
 >
 </p>
 
