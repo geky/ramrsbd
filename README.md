@@ -116,7 +116,7 @@ points. We can construct a generator polynomial $P(x)$ with $n$ fixed
 points at $g^i$ where $i < n$ like so:
 
 ``` math
-P(x) = \prod_{i=0}^n \left(x - X_i\right)
+P(x) = \prod_{i=0}^n \left(x - g^i\right)
 ```
 
 We could choose any arbitrary set of fixed points, but usually we choose
@@ -964,14 +964,14 @@ particular interest to us is the product rule:
 \left(\prod_{i=0}^n f_i(x)\right)' = \sum_{i=0}^n \left(f_i'(x) \prod_{j \ne i} f_j(x)\right)
 ```
 
-Applying this to our error-locator polynomial $\Lambda(x):
+Applying this to our error-locator polynomial $\Lambda(x)$:
 
 ``` math
 \Lambda(x) = 1 + \sum_{i=1}^e \Lambda_i x^i
 ```
 
 ``` math
-\Lambda'(x) = \sum_{i=1}^e i \Lambda_i x^{i-1}
+\Lambda'(x) = \sum_{i=1}^e i \cdot \Lambda_i x^{i-1}
 ```
 
 Recall the other definition of our error-locator polynomial $\Lambda(x)$:
