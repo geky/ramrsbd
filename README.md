@@ -117,8 +117,8 @@ points at $g^i$ where $i < n$ like so:
 
 <p align="center">
 <img
-    alt="P(x) = \prod_{i=0}^n \left(x - g^i\right)"
-    src="https://latex.codecogs.com/svg.image?P%28x%29%20%3d%20%5cprod_%7bi%3d%30%7d%5en%20%5cleft%28x%20%2d%20g%5ei%5cright%29"
+    alt="P(x) = \left(x-1\right)\left(x-g\right)\cdots\left(x-g^{n-1}\right) = \prod_{i=0}^{n-1} \left(x - g^i\right)"
+    src="https://latex.codecogs.com/svg.image?P%28x%29%20%3d%20%5cleft%28x%2d%31%5cright%29%5cleft%28x%2dg%5cright%29%5ccdots%5cleft%28x%2dg%5e%7bn%2d%31%7d%5cright%29%20%3d%20%5cprod_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20%5cleft%28x%20%2d%20g%5ei%5cright%29"
 >
 </p>
 
@@ -130,14 +130,14 @@ Note that for any fixed point $g^i$:
 
 <p align="center">
 <img
-    alt="\begin{aligned} x - g^i &= g^i - g^i \\ &= 0 \end{aligned}"
-    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20x%20%2d%20g%5ei%20%26%3d%20g%5ei%20%2d%20g%5ei%20%5c%5c%20%26%3d%20%30%20%5cend%7baligned%7d"
+    alt="g^i - g^i = 0"
+    src="https://latex.codecogs.com/svg.image?g%5ei%20%2d%20g%5ei%20%3d%20%30"
 >
 </p>
 
 And since multiplying anything by zero is zero, this will make our entire
-product zero. So for any fixed point $g^i$, $P(g^i)$ should also evaluate
-to zero:
+product zero. So for any fixed point $g^i$, $P(g^i)$ should evaluate to
+zero:
 
 <p align="center">
 <img
@@ -172,14 +172,20 @@ evaluate to zero:
 
 Ok, but what if there are errors?
 
-We can think of introducing $e$ errors as adding an error polynomial
-$E(x)$ to our original codeword, where $E(x)$ contains $e$ non-zero
-terms:
+We can think of introducing errors as adding an error polynomial $E(x)$
+to our original codeword, where $E(x)$ contains up to $e$ non-zero terms:
 
 <p align="center">
 <img
     alt="C'(x) = C(x) + E(x)"
     src="https://latex.codecogs.com/svg.image?C%27%28x%29%20%3d%20C%28x%29%20%2b%20E%28x%29"
+>
+</p>
+
+<p align="center">
+<img
+    alt="E(x) = E_0 + E_1 x + \cdots + E_{|C|-1} x^{|C|-1} = \sum_{j \in E} E_j x^j"
+    src="https://latex.codecogs.com/svg.image?E%28x%29%20%3d%20E_%30%20%2b%20E_%31%20x%20%2b%20%5ccdots%20%2b%20E_%7b%7cC%7c%2d%31%7d%20x%5e%7b%7cC%7c%2d%31%7d%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20E_j%20x%5ej"
 >
 </p>
 
@@ -196,42 +202,38 @@ The original codeword drops out! Leaving us with an equation defined only
 by the error polynomial.
 
 We call these evaluations our "syndromes" $S_i$, since they tell us
-information about the error polynomial:
+information about the errors in our codeword:
 
 <p align="center">
 <img
-    alt="S_i = C'(g^i) = E(g^i)"
-    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20C%27%28g%5ei%29%20%3d%20E%28g%5ei%29"
+    alt="S_i = C'(g^i) = E(g^i) = \sum_{j \in E} E_j g^{ji}"
+    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20C%27%28g%5ei%29%20%3d%20E%28g%5ei%29%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20E_j%20g%5e%7bji%7d"
 >
 </p>
 
-We can also give the terms of the error polynomial names. Let's call the
-$e$ non-zero terms the "error-magnitudes" $Y_j$:
+We usually refer to the unknowns in this equation as the
+"error-locations", $X_j = g^j$, and the "error-magnitudes", $Y_j = E_j$:
 
 <p align="center">
 <img
-    alt="E(x) = \sum_{j \in e} Y_j x^j"
-    src="https://latex.codecogs.com/svg.image?E%28x%29%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20x%5ej"
+    alt="S_i = C'(g^i) = E(g^i) = \sum_{j \in E} Y_j X_j^i"
+    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20C%27%28g%5ei%29%20%3d%20E%28g%5ei%29%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei"
 >
 </p>
 
-Plugging in our fixed points $g^i$ gives us another definition of our
-syndromes $S_i$, which we can rearrange a bit for simplicity. This
-results in another set of terms we call the "error-locators" $X_j=g^j$:
+Note that finding $X_j$ also gives us $j$, since $j = \log_g X_j$. We
+usually just write it this way to avoid adding a bunch of $g^j$
+everywhere.
+
+If we can figure out both the error-locations and error-magnitudes, we
+have enough information to reconstruct our original codeword:
 
 <p align="center">
 <img
-    alt="\begin{aligned} S_i = E(g^i) &= \sum_{j \in e} Y_j (g^i)^j \\ &= \sum_{j \in e} Y_j g^{ij} \\ &= \sum_{j \in e} Y_j X_j^i \end{aligned}"
-    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20S_i%20%3d%20E%28g%5ei%29%20%26%3d%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20%28g%5ei%29%5ej%20%5c%5c%20%26%3d%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20g%5e%7bij%7d%20%5c%5c%20%26%3d%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei%20%5cend%7baligned%7d"
+    alt="C(x) = C'(x) - \sum_{j \in E} Y_j X_j^i"
+    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei"
 >
 </p>
-
-Note that solving for $X_j$ also gives us our "error-locations" $j$,
-since $j = \log_g X_j$.
-
-With enough syndromes, and enough math, we can solve for both the error
-locations and error magnitudes, which is enough to extract our original
-message.
 
 #### Locating the errors
 
