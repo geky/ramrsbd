@@ -57,7 +57,7 @@ See also:
 - [littlefs][littlefs]
 - [ramcrc32bd][ramcrc32bd]
 
-### RAM?
+## RAM?
 
 Right now, [littlefs's][littlefs] block device API is limited in terms of
 composability. It would be great to fix this on a major API change, but
@@ -65,7 +65,7 @@ in the meantime, a RAM-backed block device provides a simple example of
 error-correction that users may be able to reimplement in their own
 block devices.
 
-### Testing
+## Testing
 
 Testing is a bit jank right now, relying on littlefs's test runner:
 
@@ -74,7 +74,7 @@ $ git clone https://github.com/littlefs-project/littlefs -b v2.9.3 --depth 1
 $ make test -j
 ```
 
-### Word of warning
+## Word of warning
 
 Word of warning! I'm not a mathematician, some of the definitions here
 are a bit handwavey, and I'm skipping over the history of BCH and related
@@ -84,7 +84,7 @@ articles to learn more, though it can get quite dense.
 My goal is to explain, to the best of my (simple) knowledge, how to
 implement Reed-Solomon codes, and how/why they work.
 
-### How it works
+## How it works
 
 Like CRCs, Reed-Solomon codes are implemented by concatenating the
 message with the remainder after division by a predefined "generator
@@ -108,7 +108,7 @@ However, two important differences:
    non-zero binary number is, well, 1. GF(256) has 255 non-zero elements,
    which we'll see becomes quite important.
 
-#### Constructing a generator polynomial
+### Constructing a generator polynomial
 
 Ok, first step, constructing a generator polynomial.
 
@@ -236,7 +236,7 @@ have enough information to reconstruct our original codeword:
 >
 </p>
 
-#### Locating the errors
+### Locating the errors
 
 Ok, let's say we received a codeword $C'(x)$ with $e$ errors. Evaluating
 at our fixed points $g^i$, where $i < n$ and $n \ge 2e$, gives us our
@@ -595,9 +595,10 @@ you don't :)
 
 Can you figure out the original LFSR?
 
-Answer below the line:
-
----
+<details>
+<summary>
+Answer here
+</summary>
 
 To start with Berlekamp-Massey, let's assume our LFSR is an empty LFSR
 that just spits out a stream of zeros. Not the most creative LFSR, but we
@@ -739,6 +740,8 @@ L8 = '-> | 1  | 1  | 1  | 1  |-> Output:   1 1 0 0 1 1 1 1
          '----'----'----'----'   Expected: 1 1 0 0 1 1 1 1
 ```
 
+</details>
+
 In case you want to play around with it, I've ported this algorithm to
 python in [bm-lfsr-solver.py][bm-lfsr-solver.py]. Feel free to try your
 own binary sequences to get a feel for the algorithm:
@@ -829,7 +832,7 @@ I've seen some other optimizations applied here, mainly
 really useful in hardware and doesn't actually improve our runtime when
 using Horner's method and GF(256) log tables.
 
-#### Evaluating the errors
+### Evaluating the errors
 
 Once we've found the error-locations, $X_j$, the next step is to find the
 error-magnitudes, $Y_j$.
@@ -1063,7 +1066,7 @@ finite-field multiplication, we do normal repeated addition. And since
 addition is xor in our field, this just cancels out every other term.
 
 Quite a few properties of derivatives still hold in finite-fields. Of
-particular interest to us is the product rule:
+particular interest to us is the [product rule][product-rule]:
 
 <p align="center">
 <img
@@ -1155,7 +1158,7 @@ error-magnitude, $Y_j$!
 >
 </p>
 
-#### Putting it all together
+### Putting it all together
 
 Once we've figured out the error-locator polynomial, $\Lambda(x)$, the
 error-evaluator polynomial, $\Omega(x)$, and the derivative of the
