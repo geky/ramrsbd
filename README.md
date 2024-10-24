@@ -1177,8 +1177,8 @@ luck we should find the original codeword $C(x)$!
 
 <p align="center">
 <img
-    alt="C(x) = C'(x) - \sum_{j \in E} Y_j x^j"
-    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20x%5ej"
+    alt="C(x) = C'(x) - \sum_{j \mid \Lambda(X_j^{-1}) = 0} Y_j x^j"
+    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cmid%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%30%7d%20Y_j%20x%5ej"
 >
 </p>
 
