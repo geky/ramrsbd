@@ -20,6 +20,20 @@ uint8_t ramrsbd_gf_p_eval(
     return y;
 }
 
+// Evaluate the formal derivative of a polynomial at x
+uint8_t ramrsbd_gf_p_deval(
+        const uint8_t *p, lfs_size_t p_size,
+        uint8_t x) {
+    // evaluate using Horner's method
+    uint8_t y = 0;
+    uint8_t x2 = ramrsbd_gf_mul(x, x);
+    for (lfs_size_t i = p_size % 2; i < p_size; i += 2) {
+        y = ramrsbd_gf_mul(y, x2) ^ p[i];
+    }
+
+    return y;
+}
+
 // Multiply a polynomial by a constant c
 void ramrsbd_gf_p_scale(
         uint8_t *p, lfs_size_t p_size,

@@ -22,6 +22,11 @@ uint8_t ramrsbd_gf_p_eval(
         const uint8_t *p, lfs_size_t p_size,
         uint8_t x);
 
+// Evaluate the formal derivative of a polynomial at x
+uint8_t ramrsbd_gf_p_deval(
+        const uint8_t *p, lfs_size_t p_size,
+        uint8_t x);
+
 // Multiply a polynomial by a constant c
 void ramrsbd_gf_p_scale(
         uint8_t *p, lfs_size_t p_size,

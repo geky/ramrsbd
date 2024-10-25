@@ -107,13 +107,13 @@ int ramrsbd_create(const struct lfs_config *cfg,
 
     // allocate error-locator derivative buffer?
     if (bd->cfg->math_buffer) {
-        bd->dλ = (uint8_t*)bd->cfg->math_buffer
+        bd->ω = (uint8_t*)bd->cfg->math_buffer
                 + bd->cfg->code_size
                 + bd->cfg->ecc_size
                 + bd->cfg->ecc_size
                 + bd->cfg->ecc_size;
     } else {
-        bd->dλ = lfs_malloc(bd->cfg->ecc_size);
+        bd->ω = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
             RAMRSBD_TRACE("ramrsbd_create -> %d", LFS_ERR_NOMEM);
             return LFS_ERR_NOMEM;
@@ -161,13 +161,13 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
         lfs_free(bd->p);
         lfs_free(bd->s);
         lfs_free(bd->λ);
-        lfs_free(bd->dλ);
+        lfs_free(bd->ω);
     }
     RAMRSBD_TRACE("ramrsbd_destroy -> %d", 0);
     return 0;
 }
 
-// find a set of syndromes, S, of a codeword C(x)
+// find a set of syndromes S of a codeword C(x)
 //
 // S_i = C(g^i)
 //
@@ -197,7 +197,7 @@ static bool ramrsbd_find_s(
     return s_zero;
 }
 
-// find the error-locator polynomial, Λ(x), given a set of syndromes, S,
+// find the error-locator polynomial Λ(x), given a set of syndromes S,
 // with C providing scratch space for interim math
 //
 // Λ(x) = prod_i=0^e (1 - X_i x)
@@ -277,8 +277,8 @@ static lfs_size_t ramrsbd_find_λ(
     return e;
 }
 
-// find the error-evaluator polynomial, Ω(x), given a set of
-// syndromes, S, and an error-locator polynomial, Λ(x)
+// find the error-evaluator polynomial Ω(x), given a syndrome
+// polynomial S(x) and an error-locator polynomial Λ(x)
 //
 // Ω(x) = S(x) Λ(x) mod x^n
 //
@@ -289,40 +289,15 @@ static void ramrsbd_find_ω(
     LFS_ASSERT(ω_size == s_size);
     LFS_ASSERT(ω_size == λ_size);
 
-    // allow Ω(x)/S(x) to overlap
-    if (ω != s) {
-        memcpy(ω, s, s_size);
-    }
-
     // let Ω(x) = S(x) Λ(x) mod x^n
     //
     // note that the mod is really just truncating the array, which
     // ramrsbd_gf_p_mul does implicitly if the array is too small
     //
+    memcpy(ω, s, s_size);
     ramrsbd_gf_p_mul(
             ω, ω_size,
             λ, λ_size);
-}
-
-// find the formal derivative of the error-locator polynomial
-//
-// Λ(x)  = 1 + sum_i=1^n       Λ_i x^i
-// Λ'(x) =     sum_i=1^n sum^i Λ_i x^i-1
-//
-static void ramrsbd_find_dλ(
-        uint8_t *dλ, lfs_size_t dλ_size,
-        const uint8_t *λ, lfs_size_t λ_size) {
-    LFS_ASSERT(dλ_size == λ_size);
-
-    memset(dλ, 0, dλ_size);
-    for (lfs_size_t i = 1; i < λ_size; i++) {
-        // the formal derivative defines each step as repeated addition,
-        // but our addition is just xor, so we really just need to see
-        // if this term cancels itself out
-        if (i % 2 != 0) {
-            dλ[dλ_size-1-(i-1)] = λ[λ_size-1-i];
-        }
-    }
 }
 
 int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
@@ -358,10 +333,11 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
 
         // non-zero syndromes? errors are present, attempt to correct
         if (!s_zero) {
-            // find the error-locator polynomial, Λ(x)
+            // find the error-locator polynomial Λ(x)
             lfs_size_t n = ramrsbd_find_λ(
                     bd->λ, bd->cfg->ecc_size,
-                    bd->dλ, bd->cfg->ecc_size,
+                    // use Ω(x) as scratch space
+                    bd->ω, bd->cfg->ecc_size,
                     bd->s, bd->cfg->ecc_size);
 
             // too many errors?
@@ -380,15 +356,10 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                 return LFS_ERR_CORRUPT;
             }
 
-            // find the error evaluator polynomial, Ω(x)
+            // find the error evaluator polynomial Ω(x)
             ramrsbd_find_ω(
+                    bd->ω, bd->cfg->ecc_size,
                     bd->s, bd->cfg->ecc_size,
-                    bd->s, bd->cfg->ecc_size,
-                    bd->λ, bd->cfg->ecc_size);
-
-            // find the formal derivative of Λ(x)
-            ramrsbd_find_dλ(
-                    bd->dλ, bd->cfg->ecc_size,
                     bd->λ, bd->cfg->ecc_size);
 
             // brute force search for error locations, this is any
@@ -425,10 +396,10 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                         x_i,
                         ramrsbd_gf_div(
                             ramrsbd_gf_p_eval(
-                                bd->s, bd->cfg->ecc_size,
+                                bd->ω, bd->cfg->ecc_size,
                                 x_i_),
-                            ramrsbd_gf_p_eval(
-                                bd->dλ, bd->cfg->ecc_size,
+                            ramrsbd_gf_p_deval(
+                                bd->λ, bd->cfg->ecc_size,
                                 x_i_)));
 
                 // found error location and magnitude, now we can fix it!
