@@ -74,15 +74,40 @@ $ git clone https://github.com/littlefs-project/littlefs -b v2.9.3 --depth 1
 $ make test -j
 ```
 
-## Word of warning
+## Words of warning
 
-Word of warning! I'm not a mathematician, some of the definitions here
-are a bit handwavey, and I'm skipping over the history of BCH and related
-codes. I'd encourage you to explore [Wikipedia][wikipedia] and referenced
-articles to learn more, though it can get quite dense.
+Before we get into how the algorithm works, a couple words of warning:
 
-My goal is to explain, to the best of my (simple) knowledge, how to
-implement Reed-Solomon codes, and how/why they work.
+1. I'm not a mathematician! Some of the definitions here are a bit
+   handwavey, and I'm skipping over the history of [BCH][BCH],
+   [PGZ][PGZ], [Euclidean methods][Euclidean], etc. I'd encourage you to
+   also explore [Wikipedia][wikipedia] and other relevant articles to
+   learn more.
+
+   My goal is to explain, to the best of my (limited) knowledge, how to
+   implement Reed-Solomon codes, and how/why they work.
+
+2. The following math relies heavily on [finite-fields][finite-fields]
+   (sometimes called [Galois-fields][finite-fields]) and the related
+   theory.
+
+   If you're not familiar with finite-fields, they are an abstraction we
+   can make over finite numbers (bytes for [GF(256)][gf256], bits for
+   [GF(2)][gf2]) that let us do most of math without worrying about pesky
+   things like integer overflow.
+
+   But there's not enough space here to fully explain how they work, so
+   I'd suggest reading some of the above articles first.
+
+3. This is some pretty intense math! Reed-Solomon has evolved over
+   several decades and many PhDs. Just look how many names are involved
+   in this thing. So don't get discouraged if it feels impenetrable.
+
+   Feel free to take a break to remind yourself that math is not real and
+   can not hurt you.
+
+   I'd also encourage you to use GitHub's table-of-contents to jump
+   around and keep track of where you are.
 
 ## How it works
 
@@ -1222,7 +1247,6 @@ If the syndromes are all zero, chances are high we successfully repaired
 our codeword.
 
 Unless of course we had enough errors to end up overcorrecting to another
-codeword, but there's not much we can do in that case.
-
-No error-correction is perfect, Reed-Solomon is just damn well close.
+codeword, but there's not much we can do in that case. No
+error-correction is perfect.
 
