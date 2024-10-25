@@ -143,8 +143,8 @@ points at $g^i$ where $i < n$ like so:
 
 <p align="center">
 <img
-    alt="P(x) = \left(x-1\right)\left(x-g\right)\cdots\left(x-g^{n-1}\right) = \prod_{i=0}^{n-1} \left(x - g^i\right)"
-    src="https://latex.codecogs.com/svg.image?P%28x%29%20%3d%20%5cleft%28x%2d%31%5cright%29%5cleft%28x%2dg%5cright%29%5ccdots%5cleft%28x%2dg%5e%7bn%2d%31%7d%5cright%29%20%3d%20%5cprod_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20%5cleft%28x%20%2d%20g%5ei%5cright%29"
+    alt="P(x) = \prod_{i=0}^{n-1} \left(x - g^i\right) = \left(x-1\right)\left(x-g\right)\cdots\left(x-g^{n-1}\right)"
+    src="https://latex.codecogs.com/svg.image?P%28x%29%20%3d%20%5cprod_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20%5cleft%28x%20%2d%20g%5ei%5cright%29%20%3d%20%5cleft%28x%2d%31%5cright%29%5cleft%28x%2dg%5cright%29%5ccdots%5cleft%28x%2dg%5e%7bn%2d%31%7d%5cright%29"
 >
 </p>
 
@@ -210,8 +210,8 @@ to our original codeword, where $E(x)$ contains up to $e$ non-zero terms:
 
 <p align="center">
 <img
-    alt="E(x) = E_{j_0} x^{j_0} + E_{j_1} x^{j_1} + \cdots + E_{j_{e-1}} x^{j_{e-1}} = \sum_{j \in E} E_j x^j"
-    src="https://latex.codecogs.com/svg.image?E%28x%29%20%3d%20E_%7bj_%30%7d%20x%5e%7bj_%30%7d%20%2b%20E_%7bj_%31%7d%20x%5e%7bj_%31%7d%20%2b%20%5ccdots%20%2b%20E_%7bj_%7be%2d%31%7d%7d%20x%5e%7bj_%7be%2d%31%7d%7d%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20E_j%20x%5ej"
+    alt="E(x) = \sum_{j \in E} E_j x^j = E_{j_0} x^{j_0} + E_{j_1} x^{j_1} + \cdots + E_{j_{e-1}} x^{j_{e-1}}"
+    src="https://latex.codecogs.com/svg.image?E%28x%29%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20E_j%20x%5ej%20%3d%20E_%7bj_%30%7d%20x%5e%7bj_%30%7d%20%2b%20E_%7bj_%31%7d%20x%5e%7bj_%31%7d%20%2b%20%5ccdots%20%2b%20E_%7bj_%7be%2d%31%7d%7d%20x%5e%7bj_%7be%2d%31%7d%7d"
 >
 </p>
 
@@ -281,8 +281,8 @@ To help with this, we introduce a very special polynomial, the
 
 <p align="center">
 <img
-    alt="\Lambda(x) = \left(1 - X_{j_0} x\right)\left(1 - X_{j_1} x\right)\cdots\left(1 - X_{j_{e-1}} x\right) = \prod_{j \in E} \left(1 - X_j x\right)"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cleft%28%31%20%2d%20X_%7bj_%30%7d%20x%5cright%29%5cleft%28%31%20%2d%20X_%7bj_%31%7d%20x%5cright%29%5ccdots%5cleft%28%31%20%2d%20X_%7bj_%7be%2d%31%7d%7d%20x%5cright%29%20%3d%20%5cprod_%7bj%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
+    alt="\Lambda(x) = \prod_{j \in E} \left(1 - X_j x\right) = \left(1 - X_{j_0} x\right)\left(1 - X_{j_1} x\right)\cdots\left(1 - X_{j_{e-1}} x\right)"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cprod_%7bj%20%5cin%20E%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29%20%3d%20%5cleft%28%31%20%2d%20X_%7bj_%30%7d%20x%5cright%29%5cleft%28%31%20%2d%20X_%7bj_%31%7d%20x%5cright%29%5ccdots%5cleft%28%31%20%2d%20X_%7bj_%7be%2d%31%7d%7d%20x%5cright%29"
 >
 </p>
 
@@ -329,8 +329,8 @@ definition of $\Lambda(x)$:
 
 <p align="center">
 <img
-    alt="\Lambda(x) = 1 + \Lambda_1 x + \Lambda_2 x^2 + \cdots + \Lambda_e x^e = 1 + \sum_{k=1}^e \Lambda_k x^k"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5cLambda_%31%20x%20%2b%20%5cLambda_%32%20x%5e%32%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20x%5ee%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek"
+    alt="\Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k = 1 + \Lambda_1 x + \Lambda_2 x^2 + \cdots + \Lambda_e x^e"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek%20%3d%20%31%20%2b%20%5cLambda_%31%20x%20%2b%20%5cLambda_%32%20x%5e%32%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20x%5ee"
 >
 </p>
 
@@ -389,8 +389,8 @@ $S_{i-1}, S_{i-2}, \cdots, S_{i-e}$:
 
 <p align="center">
 <img
-    alt="S_i = \Lambda_1 S_{i-1} + \Lambda_2 S_{i-2} + \cdots + \Lambda_e S_{i-e} = \sum_{k=1}^e \Lambda_k S_{i-k}"
-    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20%5cLambda_%31%20S_%7bi%2d%31%7d%20%2b%20%5cLambda_%32%20S_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20S_%7bi%2de%7d%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d"
+    alt="S_i = \sum_{k=1}^e \Lambda_k S_{i-k} = \Lambda_1 S_{i-1} + \Lambda_2 S_{i-2} + \cdots + \Lambda_e S_{i-e}"
+    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d%20%3d%20%5cLambda_%31%20S_%7bi%2d%31%7d%20%2b%20%5cLambda_%32%20S_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20S_%7bi%2de%7d"
 >
 </p>
 
@@ -435,8 +435,8 @@ that probably looks a bit familiar:
 
 <p align="center">
 <img
-    alt="L(i) = s_i = L_1 s_{i-1} + L_2 s_{i-2} + \cdots + L_{|L|} s_{i-|L|} = \sum_{k=1}^{|L|} L_k s_{i-k}"
-    src="https://latex.codecogs.com/svg.image?L%28i%29%20%3d%20s_i%20%3d%20L_%31%20s_%7bi%2d%31%7d%20%2b%20L_%32%20s_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20L_%7b%7cL%7c%7d%20s_%7bi%2d%7cL%7c%7d%20%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bi%2dk%7d"
+    alt="L(i) = s_i = \sum_{k=1}^{|L|} L_k s_{i-k} = L_1 s_{i-1} + L_2 s_{i-2} + \cdots + L_{|L|} s_{i-|L|}"
+    src="https://latex.codecogs.com/svg.image?L%28i%29%20%3d%20s_i%20%3d%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bi%2dk%7d%20%3d%20L_%31%20s_%7bi%2d%31%7d%20%2b%20L_%32%20s_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20L_%7b%7cL%7c%7d%20s_%7bi%2d%7cL%7c%7d"
 >
 </p>
 
@@ -833,8 +833,8 @@ syndromes $S_i$:
 
 <p align="center">
 <img
-    alt="\Lambda(i) = S_i = \Lambda_1 S_{i-1} + \Lambda_2 S_{i-2} + \cdots + \Lambda_e S_{i-e} = \sum_{k=1}^e \Lambda_k S_{i-k}"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28i%29%20%3d%20S_i%20%3d%20%5cLambda_%31%20S_%7bi%2d%31%7d%20%2b%20%5cLambda_%32%20S_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20S_%7bi%2de%7d%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d"
+    alt="\Lambda(i) = S_i = \sum_{k=1}^e \Lambda_k S_{i-k} = \Lambda_1 S_{i-1} + \Lambda_2 S_{i-2} + \cdots + \Lambda_e S_{i-e}"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28i%29%20%3d%20S_i%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d%20%3d%20%5cLambda_%31%20S_%7bi%2d%31%7d%20%2b%20%5cLambda_%32%20S_%7bi%2d%32%7d%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20S_%7bi%2de%7d"
 >
 </p>
 
@@ -925,8 +925,8 @@ pretend our syndromes are a polynomial now):
 
 <p align="center">
 <img
-    alt="S(x) = S_0 + S_1 x + \cdots + S_{n-1} x^{n-1} = \sum_{i=0}^{n-1} S_i x^i"
-    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20S_%30%20%2b%20S_%31%20x%20%2b%20%5ccdots%20%2b%20S_%7bn%2d%31%7d%20x%5e%7bn%2d%31%7d%20%3d%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20S_i%20x%5ei"
+    alt="S(x) = \sum_{i=0}^{n-1} S_i x^i = S_0 + S_1 x + \cdots + S_{n-1} x^{n-1}"
+    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20S_i%20x%5ei%20%3d%20S_%30%20%2b%20S_%31%20x%20%2b%20%5ccdots%20%2b%20S_%7bn%2d%31%7d%20x%5e%7bn%2d%31%7d"
 >
 </p>
 
@@ -935,8 +935,8 @@ error-locator, can be calculated like so:
 
 <p align="center">
 <img
-    alt="\Lambda'(x) = \Lambda_1 + 2 \cdot \Lambda_2 x + \cdots + e \cdot \Lambda_e x^{e-1} = \sum_{k=1}^e k \cdot \Lambda_k x^{k-1}"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5cLambda_%31%20%2b%20%32%20%5ccdot%20%5cLambda_%32%20x%20%2b%20%5ccdots%20%2b%20e%20%5ccdot%20%5cLambda_e%20x%5e%7be%2d%31%7d%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20k%20%5ccdot%20%5cLambda_k%20x%5e%7bk%2d%31%7d"
+    alt="\Lambda'(x) = \sum_{k=1}^e k \cdot \Lambda_k x^{k-1} = \Lambda_1 + 2 \cdot \Lambda_2 x + \cdots + e \cdot \Lambda_e x^{e-1}"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20k%20%5ccdot%20%5cLambda_k%20x%5e%7bk%2d%31%7d%20%3d%20%5cLambda_%31%20%2b%20%32%20%5ccdot%20%5cLambda_%32%20x%20%2b%20%5ccdots%20%2b%20e%20%5ccdot%20%5cLambda_e%20x%5e%7be%2d%31%7d"
 >
 </p>
 
@@ -962,8 +962,8 @@ Let's start with the syndrome polynomial $S(x)$:
 
 <p align="center">
 <img
-    alt="S(x) = S_0 + S_1 x + \cdots + S_{n-1} x^{n-1} = \sum_{i=0}^{n-1} S_i x^i"
-    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20S_%30%20%2b%20S_%31%20x%20%2b%20%5ccdots%20%2b%20S_%7bn%2d%31%7d%20x%5e%7bn%2d%31%7d%20%3d%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20S_i%20x%5ei"
+    alt="S(x) = \sum_{i=0}^{n-1} S_i x^i = S_0 + S_1 x + \cdots + S_{n-1} x^{n-1}"
+    src="https://latex.codecogs.com/svg.image?S%28x%29%20%3d%20%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20S_i%20x%5ei%20%3d%20S_%30%20%2b%20S_%31%20x%20%2b%20%5ccdots%20%2b%20S_%7bn%2d%31%7d%20x%5e%7bn%2d%31%7d"
 >
 </p>
 
@@ -1121,15 +1121,15 @@ Applying this to our error-locator polynomial $\Lambda(x)$:
 
 <p align="center">
 <img
-    alt="\Lambda(x) = 1 + \Lambda_1 x + \Lambda_2 x^2 + \cdots + \Lambda_e x^e = 1 + \sum_{k=1}^e \Lambda_k x^k"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5cLambda_%31%20x%20%2b%20%5cLambda_%32%20x%5e%32%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20x%5ee%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek"
+    alt="\Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k = 1 + \Lambda_1 x + \Lambda_2 x^2 + \cdots + \Lambda_e x^e"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek%20%3d%20%31%20%2b%20%5cLambda_%31%20x%20%2b%20%5cLambda_%32%20x%5e%32%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20x%5ee"
 >
 </p>
 
 <p align="center">
 <img
-    alt="\Lambda'(x) = \Lambda_1 + 2 \cdot \Lambda_2 x + \cdots + e \cdot \Lambda_e x^{e-1} = \sum_{k=1}^e k \cdot \Lambda_k x^{k-1}"
-    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5cLambda_%31%20%2b%20%32%20%5ccdot%20%5cLambda_%32%20x%20%2b%20%5ccdots%20%2b%20e%20%5ccdot%20%5cLambda_e%20x%5e%7be%2d%31%7d%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20k%20%5ccdot%20%5cLambda_k%20x%5e%7bk%2d%31%7d"
+    alt="\Lambda'(x) = \sum_{k=1}^e k \cdot \Lambda_k x^{k-1} = \Lambda_1 + 2 \cdot \Lambda_2 x + \cdots + e \cdot \Lambda_e x^{e-1}"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20k%20%5ccdot%20%5cLambda_k%20x%5e%7bk%2d%31%7d%20%3d%20%5cLambda_%31%20%2b%20%32%20%5ccdot%20%5cLambda_%32%20x%20%2b%20%5ccdots%20%2b%20e%20%5ccdot%20%5cLambda_e%20x%5e%7be%2d%31%7d"
 >
 </p>
 
