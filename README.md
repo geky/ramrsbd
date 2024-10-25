@@ -597,12 +597,16 @@ Can you figure out the original LFSR?
 
 <details>
 <summary>
-Answer here
+Click here to solve with Berlekamp-Massey
 </summary>
 
-To start with Berlekamp-Massey, let's assume our LFSR is an empty LFSR
-that just spits out a stream of zeros. Not the most creative LFSR, but we
-have to start somewhere!
+---
+
+Using Berlekamp-Massey:
+
+To start, let's assume our LFSR is an empty LFSR that just spits out a
+stream of zeros. Not the most creative LFSR, but we have to start
+somewhere!
 
 ```
 |L0| = 0
@@ -740,11 +744,16 @@ L8 = '-> | 1  | 1  | 1  | 1  |-> Output:   1 1 0 0 1 1 1 1
          '----'----'----'----'   Expected: 1 1 0 0 1 1 1 1
 ```
 
+---
+
 </details>
 
-In case you want to play around with it, I've ported this algorithm to
-python in [bm-lfsr-solver.py][bm-lfsr-solver.py]. Feel free to try your
-own binary sequences to get a feel for the algorithm:
+#### bm-lfsr-solver.py
+
+In case you want to play around with this algorithm more (and for my own
+experiments), I've ported this LFSR solver to Python in
+[bm-lfsr-solver.py][bm-lfsr-solver.py]. Feel free to try your own binary
+sequences:
 
 ``` bash
 $ ./bm-lfsr-solver.py 1 1 0 0 1 1 1 1
@@ -770,9 +779,10 @@ L24 = '-> | 1  | 0  | 0  | 1  | 0  | 0  | 1  | 0  | 0  | 0  | 0  | 1  |-> Output
           '----'----'----'----'----'----'----'----'----'----'----'----'   Expected: 0 1 1 0 1 0 0 0 0 1 1 0 1 0 0 1 0 0 1 0 0 0 0 1
 ```
 
-I've also implemented a similar script for full GF(256) LFSRs, though
-it's a bit harder for follow unless you can do full GF(256)
-multiplications in your head!
+I've also implemented a similar script,
+[bm-lfsr256-solver.py][bm-lfsr256-solver.py], for full GF(256) LFSRs,
+though it's a bit harder for follow unless you can do full GF(256)
+multiplications in your head:
 
 ```
 $ ./bm-lfsr256-solver.py 30 80 86 cb a3 78 8e 00
