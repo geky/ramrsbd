@@ -1265,8 +1265,8 @@ luck we'll find the original codeword $C(x)$!
 
 <p align="center">
 <img
-    alt="C'(x) - \sum_{j \mid \Lambda(X_j^{-1}) = 0} X_j \frac{\Omega(X_j^{-1})}{\Lambda'(X_j^{-1})} x^j = C'(x) - \sum_{j \in E} Y_j X_j^i = C(x)"
-    src="https://latex.codecogs.com/svg.image?C%27%28x%29%20%2d%20%5csum_%7bj%20%5cmid%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%30%7d%20X_j%20%5cfrac%7b%5cOmega%28X_j%5e%7b%2d%31%7d%29%7d%7b%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%7d%20x%5ej%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei%20%3d%20C%28x%29"
+    alt="C(x) = C'(x) - \sum_{j \in E} Y_j X_j^i"
+    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei"
 >
 </p>
 
