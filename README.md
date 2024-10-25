@@ -236,7 +236,7 @@ have enough information to reconstruct our original codeword:
 >
 </p>
 
-### Locating the errors
+### Finding the error locations
 
 Ok, let's say we received a codeword $C'(x)$ with $e$ errors. Evaluating
 at our fixed points $g^i$, where $i < n$ and $n \ge 2e$, gives us our
@@ -581,7 +581,7 @@ The actual algorithm itself is relatively simple:
 
 This is all implemented in [ramrsbd_find_l][ramrsbd_find_l].
 
-#### Solving binary LFSRs for fun and profit
+#### Solving binary LFSRs for fun
 
 Taking a step away from GF(256) for a moment, let's look at a simpler
 LFSR in GF(2), aka binary.
@@ -800,7 +800,7 @@ L8 = '-> | a3 | 78 | 8e | 00 |-> Output:   30 80 86 cb a3 78 8e 00
 
 Is this a good compression algorithm? Probably not.
 
-#### Finding the error locations
+#### Locating the errors
 
 Coming back to Reed-Solomon. Thanks to Berlekamp-Massey, we can solve the
 following recurrence for the terms $\Lambda_k$ given at least $n \ge 2e$
@@ -842,7 +842,7 @@ I've seen some other optimizations applied here, mainly
 really useful in hardware and doesn't actually improve our runtime when
 using Horner's method and GF(256) log tables.
 
-### Evaluating the errors
+### Finding the error magnitudes
 
 Once we've found the error-locations, $X_j$, the next step is to find the
 error-magnitudes, $Y_j$.
@@ -1146,6 +1146,15 @@ gobbledygook!
     src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%20%26%3d%20%5csum_%7bk%20%5cin%20e%7d%20%5cleft%28X_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%5cright%29%20%5c%5c%20%26%3d%20X_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%20%5cend%7baligned%7d"
 >
 </p>
+
+#### Evaluating the errors
+
+So for a given error-location, $X_j$, the error-evaluator polynomial,
+$\Omega(X_j^{-1})$, gives us the error-magnitude times some gobbledygook,
+$Y_j \prod{l \ne j} \left(1 - X_l X_j^{-1}\right)$, and the formal
+derivative of the error-locator polynomial, $\Lambda'(X_j^{-1})$, gives
+us the error-location times the same gobbledygook,
+$X_j \prod{l \ne j} \left(1 - X_l X_j^{-1}\right)$.
 
 If we divide $\Omega(X_j^{-1})$ by $\Lambda'(X_j^{-1})$, all that
 gobbledygook cancels out, leaving us with a simply equation of only
