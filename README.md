@@ -1242,22 +1242,35 @@ error-location $X_j = g^j$ and plug its inverse $X_j^{-1}$ into the
 error-locator $\Lambda(x)$. If $\Lambda(X_j^{-1}) = 0$ we've found the
 location of an error!
 
+<p align="center">
+<img
+    alt="E = \left\{j \mid \Lambda(X_j^{-1}) = 0\right\}"
+    src="https://latex.codecogs.com/svg.image?E%20%3d%20%5cleft%5c%7bj%20%5cmid%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%30%5cright%5c%7d"
+>
+</p>
+
 To fix the error, plug the error-location $X_j$ and its inverse
 $X_j^{-1}$ into Forney's algorithm to find the error-magnitude
-$Y_j$: $Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}$. Xor
-$Y_j$ into the codeword to fix this error!
+$Y_j$. Xor $Y_j$ into the codeword to fix this error!
+
+<p align="center">
+<img
+    alt="Y_j = X_j \frac{\Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}"
+    src="https://latex.codecogs.com/svg.image?Y_j%20%3d%20X_j%20%5cfrac%7b%5cOmega%28X_j%5e%7b%2d%31%7d%29%7d%7b%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%7d"
+>
+</p>
 
 Repeat for all errors in the malformed codeword $C'(x)$, and with any
 luck we'll find the original codeword $C(x)$!
 
 <p align="center">
 <img
-    alt="C(x) = C'(x) - \sum_{j \mid \Lambda(X_j^{-1}) = 0} Y_j x^j"
-    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cmid%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%30%7d%20Y_j%20x%5ej"
+    alt="C'(x) - \sum_{j \mid \Lambda(X_j^{-1}) = 0} X_j \frac{\Omega(X_j^{-1})}{\Lambda'(X_j^{-1})} x^j = C'(x) - \sum_{j \in E} Y_j X_j^i = C(x)"
+    src="https://latex.codecogs.com/svg.image?C%27%28x%29%20%2d%20%5csum_%7bj%20%5cmid%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20%30%7d%20X_j%20%5cfrac%7b%5cOmega%28X_j%5e%7b%2d%31%7d%29%7d%7b%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%7d%20x%5ej%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei%20%3d%20C%28x%29"
 >
 </p>
 
-Unfortunately we're not quite done. All of this math assumed we had
+Unfortunately we're not _quite_ done yet. All of this math assumed we had
 $e \le \frac{n}{2}$ errors. If we had more errors, we might have just
 made things worse.
 
