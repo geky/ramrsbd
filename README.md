@@ -954,7 +954,7 @@ How did Forney even come up with this?
 I don't know the answer to most of these questions, there's very little
 documentation online about where/how/what this formula comes from.
 
-But at the very least we can prove that it does work!
+But at the very least we can prove that it _does_ work!
 
 #### The error-evaluator polynomial
 
