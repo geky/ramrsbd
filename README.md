@@ -215,7 +215,7 @@ to our original codeword, where $E(x)$ contains up to $e$ non-zero terms:
 >
 </p>
 
-Check out what happens if we plug in our fixed point, $g^i$:
+Check out what happens if we plug in our fixed point $g^i$:
 
 <p align="center">
 <img
@@ -238,7 +238,7 @@ information about the errors in our codeword:
 </p>
 
 We usually refer to the unknowns in this equation as the
-"error-locations", $X_j = g^j$, and the "error-magnitudes", $Y_j = E_j$:
+"error-locations" $X_j = g^j$, and the "error-magnitudes" $Y_j = E_j$:
 
 <p align="center">
 <img
@@ -274,10 +274,10 @@ syndromes $S_i$:
 >
 </p>
 
-The next step is figuring out the error-locations, $X_j$.
+The next step is figuring out the error-locations $X_j$.
 
 To help with this, we introduce a very special polynomial, the
-"error-locator polynomial", $\Lambda(x)$:
+"error-locator polynomial" $\Lambda(x)$:
 
 <p align="center">
 <img
@@ -288,7 +288,7 @@ To help with this, we introduce a very special polynomial, the
 
 This polynomial has some rather useful properties:
 
-1. For any error-location, $X_j$, $\Lambda(X_j^{-1})$ evaluates to zero:
+1. For any error-location $X_j$, $\Lambda(X_j^{-1})$ evaluates to zero:
 
    <p align="center">
    <img
@@ -347,7 +347,7 @@ $\Lambda(x)$:
 >
 </p>
 
-Note this doesn't actually change our error-locator, $\Lambda(x)$, it
+Note this doesn't actually change our error-locator $\Lambda(x)$, it
 still has all of its original properties. For example, if we plug in
 $X_j^{-1}$ it should still evaluate to zero:
 
@@ -397,7 +397,7 @@ Aren't these our syndromes? $S_i = \sum_{j \in E} Y_j X_j^i$?
 </p>
 
 They are! We can rearrange this into an equation for $S_i$ using only our
-coefficients, $\Lambda_k$, and $e$ previously seen syndromes,
+coefficients $\Lambda_k$ and $e$ previously seen syndromes
 $S_{i-1}, S_{i-2}, \cdots, S_{i-e}$:
 
 <p align="center">
@@ -885,8 +885,8 @@ $O\left(ne\right)$ ).
 
 ### Finding the error magnitudes
 
-Once we've found the error-locations, $X_j$, the next step is to find the
-error-magnitudes, $Y_j$.
+Once we've found the error-locations $X_j$, the next step is to find the
+error-magnitudes $Y_j$.
 
 This step is relatively straightforward... sort of...
 
@@ -1061,9 +1061,9 @@ Giving us an equation for the error-evaluator polynomial, $\Omega(x)$:
 
 Notice that $l \ne k$ condition.
 
-The error-evaluator polynomial, $\Omega(x)$, still contains a big chunk
-of our error-locator polynomial, $\Lambda(x)$, so if we plug in an
-error-location, $X_j^{-1}$, _most_ of the terms evaluate to zero.
+The error-evaluator polynomial $\Omega(x)$ still contains a big chunk
+of our error-locator polynomial $\Lambda(x)$, so if we plug in an
+error-location $X_j^{-1}$, _most_ of the terms evaluate to zero.
 Except one! The one where $j = k$:
 
 <p align="center">
@@ -1073,10 +1073,10 @@ Except one! The one where $j = k$:
 >
 </p>
 
-And right there is our error-magnitude, $Y_j$! Sure we end up with a
+And right there is our error-magnitude $Y_j$! Sure we end up with a
 bunch of extra gobbledygook, but $Y_j$ _is_ there.
 
-The good news is that gobbledygook depends only on our error-locations,
+The good news is that gobbledygook depends only on our error-locations
 $X_j$, which we _do_ know and can in theory remove with more math.
 
 #### The formal derivative of the error-locator polynomial
@@ -1175,7 +1175,7 @@ Applying the product rule:
 
 Starting to look familiar?
 
-Just like the error-evaluator polynomial, $\Omega(x)$, plugging in an
+Just like the error-evaluator polynomial $\Omega(x)$, plugging in an
 error-location $X_j^{-1}$ causes _most_ of the terms to evaluate to
 zero, except the one where $j = k$, revealing $X_j$ times our
 gobbledygook!
@@ -1189,8 +1189,8 @@ gobbledygook!
 
 #### Evaluating the errors
 
-So for a given error-location, $X_j$, the error-evaluator polynomial,
-$\Omega(X_j^{-1})$, gives us the error-magnitude times some gobbledygook:
+So for a given error-location $X_j$, the error-evaluator polynomial
+$\Omega(X_j^{-1})$ gives us the error-magnitude times some gobbledygook:
 
 <p align="center">
 <img
@@ -1199,7 +1199,7 @@ $\Omega(X_j^{-1})$, gives us the error-magnitude times some gobbledygook:
 >
 </p>
 
-And the formal derivative of the error-locator polynomial, $\Lambda'(X_j^{-1})$,
+And the formal derivative of the error-locator polynomial $\Lambda'(X_j^{-1})$
 gives us the error-location times the same gobbledygook:
 
 <p align="center">
@@ -1221,7 +1221,7 @@ only $Y_j$ and $X_j$:
 </p>
 
 All that's left is to cancel out the $X_j$ term to get our
-error-magnitude, $Y_j$:
+error-magnitude $Y_j$:
 
 <p align="center">
 <img
@@ -1232,9 +1232,9 @@ error-magnitude, $Y_j$:
 
 ### Putting it all together
 
-Once we've figured out the error-locator polynomial, $\Lambda(x)$, the
-error-evaluator polynomial, $\Omega(x)$, and the derivative of the
-error-locator polynomial, $\Lambda'(x)$, we get to the fun part, fixing
+Once we've figured out the error-locator polynomial $\Lambda(x)$, the
+error-evaluator polynomial $\Omega(x)$, and the derivative of the
+error-locator polynomial $\Lambda'(x)$, we get to the fun part, fixing
 the errors!
 
 For each location $j$ in the malformed codeword $C'(x)$, calculate the
