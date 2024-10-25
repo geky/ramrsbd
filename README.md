@@ -1190,11 +1190,24 @@ gobbledygook!
 #### Evaluating the errors
 
 So for a given error-location, $X_j$, the error-evaluator polynomial,
-$\Omega(X_j^{-1})$, gives us the error-magnitude times some gobbledygook,
-$Y_j \prod{l \ne j} \left(1 - X_l X_j^{-1}\right)$, and the formal
-derivative of the error-locator polynomial, $\Lambda'(X_j^{-1})$, gives
-us the error-location times the same gobbledygook,
-$X_j \prod{l \ne j} \left(1 - X_l X_j^{-1}\right)$.
+$\Omega(X_j^{-1})$, gives us the error-magnitude times some gobbledygook:
+
+<p align="center">
+<img
+    alt="\Omega(X_j^{-1}) = Y_j \overbrace{\prod_{l \ne j} \left(1 - X_l X_j^{-1}\right)}^{\text{gobbledygook}}"
+    src="https://latex.codecogs.com/svg.image?%5cOmega%28X_j%5e%7b%2d%31%7d%29%20%3d%20Y_j%20%5coverbrace%7b%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%7d%5e%7b%5ctext%7bgobbledygook%7d%7d"
+>
+</p>
+
+And the formal derivative of the error-locator polynomial, $\Lambda'(X_j^{-1})$,
+gives us the error-location times the same gobbledygook:
+
+<p align="center">
+<img
+    alt="\Lambda'(X_j^{-1}) = X_j \overbrace{\prod_{l \ne j} \left(1 - X_l X_j^{-1}\right)}^{\text{gobbledygook}}"
+    src="https://latex.codecogs.com/svg.image?%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%20%3d%20X_j%20%5coverbrace%7b%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%7d%5e%7b%5ctext%7bgobbledygook%7d%7d"
+>
+</p>
 
 If we divide $\Omega(X_j^{-1})$ by $\Lambda'(X_j^{-1})$, all that
 gobbledygook cancels out, leaving us with a simply equation containing
