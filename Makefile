@@ -20,7 +20,7 @@ PERF	 ?= perf
 
 SRC  ?= $(filter-out \
 		$(wildcard *.t.* *.b.* littlefs/*.t.* littlefs/*.b.*), \
-		$(wildcard *.c littlefs/*.c))
+		$(wildcard *.c littlefs/lfs_util.c))
 OBJ  := $(SRC:%.c=$(BUILDDIR)/%.o)
 DEP  := $(SRC:%.c=$(BUILDDIR)/%.d)
 ASM  := $(SRC:%.c=$(BUILDDIR)/%.s)

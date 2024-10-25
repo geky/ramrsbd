@@ -496,6 +496,7 @@ int ramrsbd_erase(const struct lfs_config *cfg, lfs_block_t block) {
     LFS_ASSERT(block < cfg->block_count);
 
     // erase is a noop
+    (void)cfg;
     (void)block;
 
     RAMRSBD_TRACE("ramrsbd_erase -> %d", 0);

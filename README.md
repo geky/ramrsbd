@@ -46,11 +46,17 @@ corrected:
 Reed-Solomon codes are sort of the big brother to CRCs. Operating on
 bytes instead of bits, they are both flexible and powerful, capable of
 detecting and correcting a configurable number of byte errors
-efficiently, $O\left(ne + e^2\right)$ vs the naive $O\left(n^e\right)$
-in ramcrc32bd.
+efficiently.
 
 The only tradeoff is they are quite a bit more complex mathematically,
-which adds code and RAM cost. TODO measure this.
+which adds code and RAM cost.
+
+A quick comparison of current ram-ecc-bds:
+
+|            | code   | tables | stack | buffers  | runtime                  |
+|:-----------|-------:|-------:|------:|---------:|-------------------------:|
+| ramcrc32bd |  940 B |   64 B |  88 B |      0 B |      $O\left(n^e\right)$ |
+| ramrsbd    | 1430 B |  512 B | 128 B | n + 4e B | $O\left(ne + e^2\right)$ |
 
 See also:
 
