@@ -256,8 +256,8 @@ have enough information to reconstruct our original codeword:
 
 <p align="center">
 <img
-    alt="C(x) = C'(x) - \sum_{j \in E} Y_j X_j^i"
-    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei"
+    alt="C(x) = C'(x) - \sum_{j \in E} Y_j x^j"
+    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20x%5ej"
 >
 </p>
 
@@ -1265,8 +1265,8 @@ luck we'll find the original codeword $C(x)$!
 
 <p align="center">
 <img
-    alt="C(x) = C'(x) - \sum_{j \in E} Y_j X_j^i"
-    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei"
+    alt="C(x) = C'(x) - \sum_{j \in E} Y_j x^j"
+    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20x%5ej"
 >
 </p>
 
