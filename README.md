@@ -469,7 +469,7 @@ Berlekamp-Massey relies on two key observations:
    >
    </p>
 
-   Massey's proof of this gets very math heavy.
+   Massey's proof of this is very math heavy.
 
    Consider the equation for our LFSR $L(i)$ at $n$:
 
@@ -1059,7 +1059,7 @@ Giving us an equation for the error-evaluator polynomial, $\Omega(x)$:
 >
 </p>
 
-Notice that $l \ne k$ condition.
+Note that $l \ne k$ condition.
 
 The error-evaluator polynomial $\Omega(x)$ still contains a big chunk
 of our error-locator polynomial $\Lambda(x)$, so if we plug in an
