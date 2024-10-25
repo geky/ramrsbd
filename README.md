@@ -1265,8 +1265,8 @@ luck we'll find the original codeword $C(x)$!
 
 <p align="center">
 <img
-    alt="C(x) = C'(x) - \sum_{j \mid 1 + \sum_{k=1}^e \Lambda_k g^{-jk} = 0} X_j \frac{\left(\sum_{i=0}^{n-1} C'(g^i) g^{-ji}\right) \cdot \left(1 + \sum_{k=1}^e \Lambda_k g^{-jk}\right) \bmod x^n}{\sum_{k=1}^e k \cdot \Lambda_k g^{-j(k-1)}} x^j"
-    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cmid%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20g%5e%7b%2djk%7d%20%3d%20%30%7d%20X_j%20%5cfrac%7b%5cleft%28%5csum_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20C%27%28g%5ei%29%20g%5e%7b%2dji%7d%5cright%29%20%5ccdot%20%5cleft%28%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20g%5e%7b%2djk%7d%5cright%29%20%5cbmod%20x%5en%7d%7b%5csum_%7bk%3d%31%7d%5ee%20k%20%5ccdot%20%5cLambda_k%20g%5e%7b%2dj%28k%2d%31%29%7d%7d%20x%5ej"
+    alt="C(x) = C'(x) - \sum_{j \in E} Y_j x^j"
+    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20x%5ej"
 >
 </p>
 
