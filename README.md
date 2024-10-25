@@ -248,7 +248,7 @@ We usually refer to the unknowns in this equation as the
 </p>
 
 Note that finding $X_j$ also gives us $j$, since $j = \log_g X_j$. We
-usually just write it this way to avoid adding a bunch of $g^j$
+usually write it this way just to avoid adding a bunch of $g^j$
 everywhere.
 
 If we can figure out both the error-locations and error-magnitudes, we
@@ -288,7 +288,14 @@ To help with this, we introduce a very special polynomial, the
 
 This polynomial has some rather useful properties:
 
-1. For any error-location, $X_j$, $\Lambda(X_j^{-1}) = 0$.
+1. For any error-location, $X_j$, $\Lambda(X_j^{-1})$ evaluates to zero:
+
+   <p align="center">
+   <img
+       alt="\Lambda(X^{-1}) = 0"
+       src="https://latex.codecogs.com/svg.image?%5cLambda%28X%5e%7b%2d%31%7d%29%20%3d%20%30"
+   >
+   </p>
 
    This is for similar reasons why $P(g^i) = 0$. For any error-location
    $X_j$:
@@ -303,7 +310,14 @@ This polynomial has some rather useful properties:
    And since multiplying anything by zero is zero, the product reduces to
    zero.
 
-2. $\Lambda(0) = 1$.
+2. $\Lambda(0)$ evaluates to one:
+
+   <p align="center">
+   <img
+       alt="\Lambda(0) = 1"
+       src="https://latex.codecogs.com/svg.image?%5cLambda%28%30%29%20%3d%20%31"
+   >
+   </p>
 
    This can be seen by plugging in 0:
 
@@ -314,18 +328,17 @@ This polynomial has some rather useful properties:
    >
    </p>
 
-   This 1 prevents trivial solutions, and is what makes $\Lambda(x)$
-   useful.
+   This prevents trivial solutions and is what makes $\Lambda(x)$ useful.
 
-But what's _really_ interesting is that these two properties allow us to
+What's _really_ interesting is that these two properties allow us to
 solve for $\Lambda(x)$ with only our syndromes $S_i$.
 
-We know $\Lambda(x)$ as $e$ roots, which means we can expand it into a
+We know $\Lambda(x)$ has $e$ roots, which means we can expand it into a
 polynomial with $e+1$ terms. We also know that $\Lambda(0) = 1$, so the
 constant term must be 1. Giving the coefficients of this expanded
 polynomial the arbitrary names
-$\Lambda_1, \Lambda_2, \cdots, \Lambda_e$, we end up with another
-definition of $\Lambda(x)$:
+$\Lambda_1, \Lambda_2, \cdots, \Lambda_e$, we find another definition for
+$\Lambda(x)$:
 
 <p align="center">
 <img
@@ -334,9 +347,9 @@ definition of $\Lambda(x)$:
 >
 </p>
 
-Note this doesn't change our error-locator, $\Lambda(x)$, it still has
-all of its original properties. For example, if we plug in $X_j^{-1}$, it
-should still evaluate to zero:
+Note this doesn't actually change our error-locator, $\Lambda(x)$, it
+still has all of its original properties. For example, if we plug in
+$X_j^{-1}$ it should still evaluate to zero:
 
 <p align="center">
 <img
@@ -413,11 +426,11 @@ syndromes to solve for $e$ errors at unknown locations.
 Ok that's the theory, but solving this system of equations efficiently is
 still quite difficult.
 
-Enter the Berlekamp-Massey algorithm.
+Enter [Berlekamp-Massey][berlekamp-massey].
 
-The key observation by Massey, is that solving for $\Lambda(x)$ is
+A key observation by Massey is that solving for $\Lambda(x)$ is
 equivalent to constructing an LFSR that generates the sequence
-$S_e, S_{e+1}, \dots, S_{n-1}$, given the initial state
+$S_e, S_{e+1}, \dots, S_{n-1}$ given the initial state
 $S_0, S_1, \dots, S_{e-1}$:
 
 ```
@@ -430,8 +443,10 @@ $S_0, S_1, \dots, S_{e-1}$:
     '----'----'----'----'--     --'----'----'
 ```
 
-Such an LFSR can be described by a [recurrence relation][recurrence-relation]
-that probably looks a bit familiar:
+Pretty wild huh.
+
+We can describe such an LFSR with a [recurrence relation][recurrence-relation]
+that might look a bit familiar:
 
 <p align="center">
 <img
@@ -442,9 +457,9 @@ that probably looks a bit familiar:
 
 Berlekamp-Massey relies on two key observations:
 
-1. If an LFSR $L$ of size $|L|$ generates the sequence
+1. If an LFSR $L(i)$ of size $|L|$ generates the sequence
    $s_0, s_1, \dots, s_{n-1}$, but fails to generate the sequence
-   $s_0, s_1, \dots, s_{n-1}, s_n$, than an LFSR $L'$ that _does_
+   $s_0, s_1, \dots, s_{n-1}, s_n$, than an LFSR $L'(i)$ that _does_
    generate the sequence must have a size of at least:
 
    <p align="center">
@@ -454,9 +469,9 @@ Berlekamp-Massey relies on two key observations:
    >
    </p>
 
-   Massey's proof of this gets a bit wild.
+   Massey's proof of this gets very math heavy.
 
-   Consider the equation for our LFSR $L$ at $n$:
+   Consider the equation for our LFSR $L(i)$ at $n$:
 
    <p align="center">
    <img
@@ -465,7 +480,7 @@ Berlekamp-Massey relies on two key observations:
    >
    </p>
 
-   If we have another LFSR $L'$ that generates
+   If we have another LFSR $L'(i)$ that generates
    $s_{n-|L|}, s_{n-|L|+1}, \cdots, s_{n-1}$, we can substitute it in for
    $s_{n-k}$:
 
@@ -485,9 +500,9 @@ Berlekamp-Massey relies on two key observations:
    >
    </p>
 
-   And note that right summation looks a lot like $L$. If $L$ generates
-   $s_{n-|L'|}, s_{n-|L'|+1}, \cdots, s_{n-1}$, we can replace it with
-   $s_{n-k'}$:
+   And note that right summation looks a lot like $L(i)$. If $L(i)$
+   generates $s_{n-|L'|}, s_{n-|L'|+1}, \cdots, s_{n-1}$, we can replace
+   it with $s_{n-k'}$:
 
    <p align="center">
    <img
@@ -496,7 +511,7 @@ Berlekamp-Massey relies on two key observations:
    >
    </p>
    
-   Oh hey! That's the definition of $L'$:
+   Oh hey! That's the definition of $L'(i)$:
 
    <p align="center">
    <img
@@ -505,20 +520,20 @@ Berlekamp-Massey relies on two key observations:
    >
    </p>
 
-   So if $L'$ generates $s_n$, $L$ must also generate $s_n$.
+   So if $L'(i)$ generates $s_n$, $L(i)$ must also generate $s_n$.
 
-   The only way to make $L'$ generate a different $s_n$ would be to make
-   $|L'| \ge n+1-|L|$ so that $L$ can no longer generate
+   The only way to make $L'(i)$ generate a different $s_n$ would be to
+   make $|L'| \ge n+1-|L|$ so that $L(i)$ can no longer generate
    $s_{n-|L'|}, s_{n-|L'|+1}, \cdots, s_{n-1}$.
 
-2. Once we've found the best LFSR $L$ for a given size $|L|$, its
+2. Once we've found the best LFSR $L(i)$ for a given size $|L|$, its
    definition provides an optimal strategy for changing only the last
    element of the generated sequence.
 
-   This is assuming $L$ failed of course. If $L$ generated the whole
-   sequence our algorithm is done!
+   This is assuming $L(i)$ failed of course. If $L(i)$ generated the
+   whole sequence our algorithm is done!
 
-   If $L$ failed, we assume it correctly generated
+   If $L(i)$ failed, we assume it correctly generated
    $s_0, s_1, \cdots, s_{n-1}$, but failed at $s_n$. We call the
    difference from the expected symbol the discrepancy $d$:
 
@@ -530,16 +545,17 @@ Berlekamp-Massey relies on two key observations:
    </p>
 
    If we know $s_i$ (which requires a larger LFSR), we can rearrange this
-   to be a bit more useful. We call this our connection polynomial $C$:
+   to be a bit more useful. We call this our connection polynomial
+   $C(i)$:
 
    <p align="center">
    <img
-       alt="C(i) = d^{-1} \cdot \left(-s_i + \sum_{k=1}^{|L|} L_k s_{i-k}\right) = \begin{cases} 0 & i = |L|, |L|+1,\cdots,n-1 \\ 1 & i = n \end{cases}"
-       src="https://latex.codecogs.com/svg.image?C%28i%29%20%3d%20d%5e%7b%2d%31%7d%20%5ccdot%20%5cleft%28%2ds_i%20%2b%20%5csum_%7bk%3d%31%7d%5e%7b%7cL%7c%7d%20L_k%20s_%7bi%2dk%7d%5cright%29%20%3d%20%5cbegin%7bcases%7d%20%30%20%26%20i%20%3d%20%7cL%7c%2c%20%7cL%7c%2b%31%2c%5ccdots%2cn%2d%31%20%5c%5c%20%31%20%26%20i%20%3d%20n%20%5cend%7bcases%7d"
+       alt="C(i) = d^{-1} \cdot \left(L(i) - s_i\right) = \begin{cases} 0 & i = |L|, |L|+1,\cdots,n-1 \\ 1 & i = n \end{cases}"
+       src="https://latex.codecogs.com/svg.image?C%28i%29%20%3d%20d%5e%7b%2d%31%7d%20%5ccdot%20%5cleft%28L%28i%29%20%2d%20s_i%5cright%29%20%3d%20%5cbegin%7bcases%7d%20%30%20%26%20i%20%3d%20%7cL%7c%2c%20%7cL%7c%2b%31%2c%5ccdots%2cn%2d%31%20%5c%5c%20%31%20%26%20i%20%3d%20n%20%5cend%7bcases%7d"
    >
    </p>
 
-   Now, if we have a larger LFSR $L'$ with size $|L'| \gt |L|$ and we
+   Now, if we have a larger LFSR $L'(i)$ with size $|L'| \gt |L|$ and we
    want to change only the symbol $s'_n$ by $d'$, we can add
    $d' \cdot C(i)$, and only $s'_n$ will be affected:
 
@@ -555,14 +571,13 @@ understood most of Berlekamp-Massey.
 
 The actual algorithm itself is relatively simple:  
   
-1. Using the current LFSR $L$, generate the next symbol $s'_n$, and
-   calculate the discrepancy $d$ between $s'_n$ and the expected symbol
-   $s_n$:
+1. Using the current LFSR $L(i)$, generate the next symbol and calculate
+   the discrepancy $d$ between it and the expected symbol $s_n$:
 
    <p align="center">
    <img
-       alt="d = s'_n - s_n"
-       src="https://latex.codecogs.com/svg.image?d%20%3d%20s%27_n%20%2d%20s_n"
+       alt="d = L(n) - s_n"
+       src="https://latex.codecogs.com/svg.image?d%20%3d%20L%28n%29%20%2d%20s_n"
    >
    </p>
   
@@ -585,12 +600,12 @@ The actual algorithm itself is relatively simple:
 
       <p align="center">
       <img
-          alt="C'(i) = d^{-1} \cdot L(i)"
-          src="https://latex.codecogs.com/svg.image?C%27%28i%29%20%3d%20d%5e%7b%2d%31%7d%20%5ccdot%20L%28i%29"
+          alt="C'(i) = d^{-1} \cdot \left(L(i) - s_i\right)"
+          src="https://latex.codecogs.com/svg.image?C%27%28i%29%20%3d%20d%5e%7b%2d%31%7d%20%5ccdot%20%5cleft%28L%28i%29%20%2d%20s_i%5cright%29"
       >
       </p>
 
-   2. Now we can fix the LFSR by adding our last $C$ (not $C'$!),
+   2. Now we can fix the LFSR by adding our last $C(i)$ (not $C'(i)$!),
       shifting and scaling so only $s_n$ is affected:
 
       <p align="center">
@@ -600,8 +615,8 @@ The actual algorithm itself is relatively simple:
       >
       </p>
 
-      Where $m$ is the value of $n$ when we saved the last $C$. If we
-      shift $C$ every step of the algorithm, we usually don't need to
+      Where $m$ is the value of $n$ when we saved the last $C(i)$. If we
+      shift $C(i)$ every step of the algorithm, we usually don't need to
       track $m$ explicitly.
 
 This is all implemented in [ramrsbd_find_l][ramrsbd_find_l].
@@ -823,11 +838,11 @@ L8 = '-> | a3 | 78 | 8e | 00 |-> Output:   30 80 86 cb a3 78 8e 00
          '----'----'----'----'   Expected: 30 80 86 cb a3 78 8e 00
 ```
 
-Is this a good compression algorithm? Probably not.
+Is Berlekamp-Massey a good compression algorithm? Probably not.
 
 #### Locating the errors
 
-Coming back to Reed-Solomon. Thanks to Berlekamp-Massey, we can solve the
+Coming back to Reed-Solomon, thanks to Berlekamp-Massey we can solve the
 following recurrence for the terms $\Lambda_k$ given at least $n \ge 2e$
 syndromes $S_i$:
 
@@ -848,12 +863,11 @@ find the locations of errors:
 >
 </p>
 
-All we have left to do is figure out where $\Lambda(X_j^{-1})=0$, since
-these will be the locations of our errors.
+All we have left to do is figure out where $\Lambda(X_j^{-1})=0$.
 
-The easiest way to do this is brute force: Just plug in every location
-$X_j=g^j$ in our codeword, and if $\Lambda(X_j^{-1}) = 0$, we know $X_j$ is
-the location of an error:
+The easiest way to do this is just brute force: Just plug in every
+location $X_j=g^j$ in our codeword, and if $\Lambda(X_j^{-1}) = 0$, we
+know $X_j$ is the location of an error:
 
 <p align="center">
 <img
@@ -862,17 +876,19 @@ the location of an error:
 >
 </p>
 
-I've seen some other optimizations applied here, mainly
-[Chien's search][chiens-search], but as far as I can tell this is only
-really useful in hardware and doesn't actually improve our runtime when
-using Horner's method and GF(256) log tables.
+Wikipedia and other resources often mention an optimization called
+[Chien's search][chiens-search] being applied here, but from reading up
+on the algorithm it seems to only be useful for hardware implementations.
+In software Chien's search doesn't actually improve our runtime over
+brute force with Horner's method and log tables ( $O\left(ne\right)$ vs
+$O\left(ne\right)$ ).
 
 ### Finding the error magnitudes
 
 Once we've found the error-locations, $X_j$, the next step is to find the
 error-magnitudes, $Y_j$.
 
-This step is relatively straightforward... kind of...
+This step is relatively straightforward... sort of...
 
 Recall the definition of our syndromes $S_i$:
 
@@ -897,8 +913,7 @@ and $e$ unknowns, which we can, in theory, solve for:
 
 But again, solving this system of equations is easier said than done.
 
-It turns out there's a really clever formula that can be used to solve
-for $Y_j$ directly, called [Forney's algorithm][forneys-algorithm].
+Enter [Forney's algorithm][forneys-algorithm].
 
 Assuming we know an error-locator $X_j$, the following formula will spit
 out an error-magnitude $Y_j$:
@@ -920,8 +935,8 @@ like so:
 >
 </p>
 
-$S(x)$, called the "syndrome polynomial", is defined like so (we just
-pretend our syndromes are a polynomial now):
+$S(x)$, the "syndrome polynomial", is defined like so (we just pretend
+our syndromes are a polynomial now):
 
 <p align="center">
 <img
@@ -942,19 +957,19 @@ error-locator, can be calculated like so:
 
 Though note $k$ is not a field element, so multiplication by $k$
 represents normal repeated addition. And since addition is xor in our
-field, this just cancels out every other term.
+field, this really just cancels out every other term.
 
 The end result is a simple formula for our error-magnitudes $Y_j$.
 
 #### WTF
 
-Haha, I know right? Where did this equation come from? How does it work?
+Haha, I know right? Where did this equation come from? Why does it work?
 How did Forney even come up with this?
 
 I don't know the answer to most of these questions, there's very little
-documentation online about where/how/what this formula comes from.
+information online about where/how/what this formula comes from.
 
-But at the very least we can prove that it _does_ work!
+But at the very least we can prove that it _does_ work.
 
 #### The error-evaluator polynomial
 
@@ -967,7 +982,7 @@ Let's start with the syndrome polynomial $S(x)$:
 >
 </p>
 
-Substituting in the definition of our syndromes,
+Substituting in the definition of our syndromes
 $S_i = \sum_{k \in E} Y_k X_k^i x^i$:
 
 <p align="center">
@@ -986,7 +1001,7 @@ The sum on the right turns out to be a [geometric series][geometric-series]:
 >
 </p>
 
-If we then multiply with our error-locator polynomial,
+If we then multiply with our error-locator polynomial
 $\Lambda(x) = \prod_{l \in E} \left(1 - X_l x\right)$:
 
 <p align="center">
@@ -996,7 +1011,8 @@ $\Lambda(x) = \prod_{l \in E} \left(1 - X_l x\right)$:
 >
 </p>
 
-We see exactly one term in each summand cancel out, where $l = k$.
+We see exactly one term in each summand cancel out, the term where
+$l = k$.
 
 At this point, if we plug in $X_j^{-1}$, $S(X_j^{-1})\Lambda(X_j^{-1})$
 still evaluates to zero thanks to the error-locator polynomial
@@ -1011,11 +1027,11 @@ But if we expand the multiplication, something interesting happens:
 >
 </p>
 
-On the left side of the subtraction, all terms are at _most_ degree
-$x^{e-1}$. On the right side of the subtraction, all terms are at _least_
+On the left side of the subtraction, all terms are $\le$ degree
+$x^{e-1}$. On the right side of the subtraction, all terms are $\ge$
 degree $x^n$.
 
-Imagine how these contribute to the expanded form of the equation:
+Imagine how these both contribute to the expanded form of the equation:
 
 <p align="center">
 <img
@@ -1024,7 +1040,7 @@ Imagine how these contribute to the expanded form of the equation:
 >
 </p>
 
-If we truncate this polynomial, $\bmod n$ in math land, we can
+If we truncate this polynomial, $\bmod x^n$ in math land, we can
 effectively delete part of this equation:
 
 <p align="center">
@@ -1034,7 +1050,7 @@ effectively delete part of this equation:
 >
 </p>
 
-Giving us the equation for the error-evaluator polynomial, $\Omega(x)$:
+Giving us an equation for the error-evaluator polynomial, $\Omega(x)$:
 
 <p align="center">
 <img
@@ -1043,8 +1059,7 @@ Giving us the equation for the error-evaluator polynomial, $\Omega(x)$:
 >
 </p>
 
-Now what's really neat about the error-evaluator polynomial,
-$\Omega(x)$, is that $l \ne k$ condition.
+Notice that $l \ne k$ condition.
 
 The error-evaluator polynomial, $\Omega(x)$, still contains a big chunk
 of our error-locator polynomial, $\Lambda(x)$, so if we plug in an
@@ -1061,9 +1076,8 @@ Except one! The one where $j = k$:
 And right there is our error-magnitude, $Y_j$! Sure we end up with a
 bunch of extra gobbledygook, but $Y_j$ _is_ there.
 
-The good news is all that gobbledygook depends only on our
-error-locations, $X_j$, which we _do_ know and can in theory remove with
-a bit of math.
+The good news is that gobbledygook depends only on our error-locations,
+$X_j$, which we _do_ know and can in theory remove with more math.
 
 #### The formal derivative of the error-locator polynomial
 
@@ -1084,21 +1098,22 @@ normal math:
 
 <p align="center">
 <img
-    alt="f(x) = f_0 + f_1 x + \cdots + f_i x^i"
-    src="https://latex.codecogs.com/svg.image?f%28x%29%20%3d%20f_%30%20%2b%20f_%31%20x%20%2b%20%5ccdots%20%2b%20f_i%20x%5ei"
+    alt="f(x) = \sum_{i=0} f_i x^i = f_0 + f_1 x + \cdots + f_i x^i"
+    src="https://latex.codecogs.com/svg.image?f%28x%29%20%3d%20%5csum_%7bi%3d%30%7d%20f_i%20x%5ei%20%3d%20f_%30%20%2b%20f_%31%20x%20%2b%20%5ccdots%20%2b%20f_i%20x%5ei"
 >
 </p>
 
 <p align="center">
 <img
-    alt="f'(x) = f_1 + 2 \cdot f_2 x + \dots + i \cdot f_i x^{i-1}"
-    src="https://latex.codecogs.com/svg.image?f%27%28x%29%20%3d%20f_%31%20%2b%20%32%20%5ccdot%20f_%32%20x%20%2b%20%5cdots%20%2b%20i%20%5ccdot%20f_i%20x%5e%7bi%2d%31%7d"
+    alt="f'(x) = \sum_{i=1} i \cdot f_i x^{i-1} = f_1 + 2 \cdot f_2 x + \dots + i \cdot f_i x^{i-1}"
+    src="https://latex.codecogs.com/svg.image?f%27%28x%29%20%3d%20%5csum_%7bi%3d%31%7d%20i%20%5ccdot%20f_i%20x%5e%7bi%2d%31%7d%20%3d%20f_%31%20%2b%20%32%20%5ccdot%20f_%32%20x%20%2b%20%5cdots%20%2b%20i%20%5ccdot%20f_i%20x%5e%7bi%2d%31%7d"
 >
 </p>
 
 Except $i$ here is not a finite-field element, so instead of doing
 finite-field multiplication, we do normal repeated addition. And since
-addition is xor in our field, this just cancels out every other term.
+addition is xor in our field, this just has the effect of canceling out
+every other term.
 
 Quite a few properties of derivatives still hold in finite-fields. Of
 particular interest to us is the [product rule][product-rule]:
@@ -1182,8 +1197,8 @@ us the error-location times the same gobbledygook,
 $X_j \prod{l \ne j} \left(1 - X_l X_j^{-1}\right)$.
 
 If we divide $\Omega(X_j^{-1})$ by $\Lambda'(X_j^{-1})$, all that
-gobbledygook cancels out, leaving us with a simply equation of only
-$Y_j$ and $X_j$:
+gobbledygook cancels out, leaving us with a simply equation containing
+only $Y_j$ and $X_j$:
 
 <p align="center">
 <img
@@ -1193,7 +1208,7 @@ $Y_j$ and $X_j$:
 </p>
 
 All that's left is to cancel out the $X_j$ term to get our
-error-magnitude, $Y_j$!
+error-magnitude, $Y_j$:
 
 <p align="center">
 <img
@@ -1206,7 +1221,7 @@ error-magnitude, $Y_j$!
 
 Once we've figured out the error-locator polynomial, $\Lambda(x)$, the
 error-evaluator polynomial, $\Omega(x)$, and the derivative of the
-error-locator polynomial, $\Lambda'(x)$, we get to the fun part: Fixing
+error-locator polynomial, $\Lambda'(x)$, we get to the fun part, fixing
 the errors!
 
 For each location $j$ in the malformed codeword $C'(x)$, calculate the
@@ -1215,12 +1230,12 @@ error-locator $\Lambda(x)$. If $\Lambda(X_j^{-1}) = 0$ we've found the
 location of an error!
 
 To fix the error, plug the error-location $X_j$ and its inverse
-$X_j^{-1}$ into Forney's formula to find the error-magnitude
+$X_j^{-1}$ into Forney's algorithm to find the error-magnitude
 $Y_j$: $Y_j = \frac{X_j \Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}$. Xor
 $Y_j$ into the codeword to fix this error!
 
 Repeat for all errors in the malformed codeword $C'(x)$, and with any
-luck we should find the original codeword $C(x)$!
+luck we'll find the original codeword $C(x)$!
 
 <p align="center">
 <img
@@ -1229,12 +1244,12 @@ luck we should find the original codeword $C(x)$!
 >
 </p>
 
-But we're not quite done. All of this math assumed we had
-$e \le \frac{n}{2}$ errors. If we had more errors, it's possible we just
+Unfortunately we're not quite done. All of this math assumed we had
+$e \le \frac{n}{2}$ errors. If we had more errors, we might have just
 made things worse.
 
-It's worth recalculating the syndromes after repairing errors to see if
-we did ended up with a valid codeword:
+It's worth recalculating the syndromes after fixing errors to see if we
+did ended up with a valid codeword:
 
 <p align="center">
 <img
@@ -1246,7 +1261,7 @@ we did ended up with a valid codeword:
 If the syndromes are all zero, chances are high we successfully repaired
 our codeword.
 
-Unless of course we had enough errors to end up overcorrecting to another
-codeword, but there's not much we can do in that case. No
+Unless of course we had enough errors to end up overcorrecting to a
+different codeword, but there's not much we can do in that case. No
 error-correction is perfect.
 
