@@ -886,8 +886,7 @@ Wikipedia and other resources often mention an optimization called
 [Chien's search][chiens-search] being applied here, but from reading up
 on the algorithm it seems to only be useful for hardware implementations.
 In software Chien's search doesn't actually improve our runtime over
-brute force with Horner's method and log tables ( $O\left(ne\right)$ vs
-$O\left(ne\right)$ ).
+brute force with Horner's method and log tables ( $O(ne)$ vs $O(ne)$ ).
 
 ### Finding the error magnitudes
 
