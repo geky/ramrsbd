@@ -397,8 +397,8 @@ Aren't these our syndromes? $S_i = \sum_{j \in E} Y_j X_j^i$?
 
 <p align="center">
 <img
-    alt="\sum_{j \in e} Y_j X_j^i \Lambda(X_j^{-1}) = S_i + \sum_{k=1}^e \Lambda_k S_{i-k} = 0"
-    src="https://latex.codecogs.com/svg.image?%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20S_i%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d%20%3d%20%30"
+    alt="\sum_{j \in E} Y_j X_j^i \Lambda(X_j^{-1}) = S_i + \sum_{k=1}^e \Lambda_k S_{i-k} = 0"
+    src="https://latex.codecogs.com/svg.image?%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei%20%5cLambda%28X_j%5e%7b%2d%31%7d%29%20%3d%20S_i%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20S_%7bi%2dk%7d%20%3d%20%30"
 >
 </p>
 
@@ -900,8 +900,8 @@ Recall the definition of our syndromes $S_i$:
 
 <p align="center">
 <img
-    alt="S_i = \sum_{j \in e} Y_j X_j^i"
-    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20%5csum_%7bj%20%5cin%20e%7d%20Y_j%20X_j%5ei"
+    alt="S_i = \sum_{j \in E} Y_j X_j^i"
+    src="https://latex.codecogs.com/svg.image?S_i%20%3d%20%5csum_%7bj%20%5cin%20E%7d%20Y_j%20X_j%5ei"
 >
 </p>
 
@@ -1188,8 +1188,8 @@ gobbledygook!
 
 <p align="center">
 <img
-    alt="\begin{aligned} \Lambda'(X_j^{-1}) &= \sum_{k \in e} \left(X_k \prod_{l \ne k} \left(1 - X_l X_j^{-1}\right)\right) \\ &= X_j \prod_{l \ne j} \left(1 - X_l X_j^{-1}\right) \end{aligned}"
-    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%20%26%3d%20%5csum_%7bk%20%5cin%20e%7d%20%5cleft%28X_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%5cright%29%20%5c%5c%20%26%3d%20X_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%20%5cend%7baligned%7d"
+    alt="\begin{aligned} \Lambda'(X_j^{-1}) &= \sum_{k \in E} \left(X_k \prod_{l \ne k} \left(1 - X_l X_j^{-1}\right)\right) \\ &= X_j \prod_{l \ne j} \left(1 - X_l X_j^{-1}\right) \end{aligned}"
+    src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cLambda%27%28X_j%5e%7b%2d%31%7d%29%20%26%3d%20%5csum_%7bk%20%5cin%20E%7d%20%5cleft%28X_k%20%5cprod_%7bl%20%5cne%20k%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%5cright%29%20%5c%5c%20%26%3d%20X_j%20%5cprod_%7bl%20%5cne%20j%7d%20%5cleft%28%31%20%2d%20X_l%20X_j%5e%7b%2d%31%7d%5cright%29%20%5cend%7baligned%7d"
 >
 </p>
 
