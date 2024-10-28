@@ -122,7 +122,7 @@ int ramrsbd_create(const struct lfs_config *cfg,
 
     // calculate generator polynomial
     //
-    // P(x) = prod_i^n (x - g^i)
+    // P(x) = prod_i^n-1 (x - g^i)
     //
     // the important property of P(x) is that it evaluates to 0
     // at every x=g^i for i < n
@@ -130,7 +130,7 @@ int ramrsbd_create(const struct lfs_config *cfg,
     // normally P(x) needs n+1 terms, but the leading term is always 1,
     // so we can make it implicit
     //
-    
+
     // let P(x) = 1
     memset(bd->p, 0, bd->cfg->ecc_size);
     bd->p[bd->cfg->ecc_size-1] = 1;
@@ -167,9 +167,13 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
     return 0;
 }
 
-// find a set of syndromes S of a codeword C(x)
+// find the set of syndromes S for a codeword C(x)
 //
 // S_i = C(g^i)
+//
+// if our codeword contains no errors, these should all be zero,
+// otherwise they tell us information about the errors,
+// S_i = sum_j Y_j X_j^i where j is an error
 //
 // also returns true if zero for convenience
 static bool ramrsbd_find_s(
@@ -179,11 +183,6 @@ static bool ramrsbd_find_s(
     bool s_zero = true;
     for (lfs_size_t i = 0; i < s_size; i++) {
         // let S_i = C(g^i)
-        //
-        // note that because C(x) is a multiple of P(x), and P(x) is zero
-        // at every x=g^i for i < n, this should also be zero if no
-        // errors are present
-        //
         s[i] = ramrsbd_gf_p_eval(
                 c, c_size,
                 ramrsbd_gf_pow(RAMRSBD_GF_G, s_size-1-i));
@@ -200,7 +199,9 @@ static bool ramrsbd_find_s(
 // find the error-locator polynomial Λ(x), given a set of syndromes S,
 // with C providing scratch space for interim math
 //
-// Λ(x) = prod_i=0^e (1 - X_i x)
+// Λ(x) = prod_j (1 - X_j x) = 1 + sum_k=1^e Λ_k x^k
+//
+// where Λ(X_j^-1)=0 if j is an error and Λ(0)=1
 //
 // also returns the number of errors for convenience
 static lfs_size_t ramrsbd_find_λ(
@@ -235,13 +236,13 @@ static lfs_size_t ramrsbd_find_λ(
 
         // calculate next symbol discrepancy
         //
-        // let d = S_n - sum_i=1^e Λ_i S_n-i
+        // let d = S_n - Λ(n) = S_n - sum_k=1^e Λ_k S_n-k
         //
         uint8_t d = s[s_size-1-n];
-        for (lfs_size_t i = 1; i <= e; i++) {
+        for (lfs_size_t k = 1; k <= e; k++) {
             d ^= ramrsbd_gf_mul(
-                    λ[λ_size-1-i],
-                    s[s_size-1-(n-i)]);
+                    λ[λ_size-1-k],
+                    s[s_size-1-(n-k)]);
         }
 
         // found discrepancy?
@@ -261,7 +262,7 @@ static lfs_size_t ramrsbd_find_λ(
                 //
                 // this should be C(i) = d^-1 Λ(i), but before we
                 // modified Λ(i) = Λ(i) - d C(i), fortunately we can just
-                // undo the modification to avoid needing more memory:
+                // undo the modification to avoid needing another buffer:
                 //
                 // let C(i) = d^-1 (Λ(i) + d C(i))
                 //          = C(i) + d^-1 Λ(i)
@@ -281,6 +282,9 @@ static lfs_size_t ramrsbd_find_λ(
 // polynomial S(x) and an error-locator polynomial Λ(x)
 //
 // Ω(x) = S(x) Λ(x) mod x^n
+//
+// this indirectly gives us our error-magnitudes Y_j for a given X_j,
+// Ω(X_j^-1) = Y_j X_j Λ'(X_j^-1), if j is an error
 //
 static void ramrsbd_find_ω(
         uint8_t *ω, lfs_size_t ω_size,
@@ -363,47 +367,47 @@ int ramrsbd_read(const struct lfs_config *cfg, lfs_block_t block,
                     bd->λ, bd->cfg->ecc_size);
 
             // brute force search for error locations, this is any
-            // location X_i=g^i where X_i^-1 is a root of our
-            // error-locator, Λ(X_i^-1) = 0
-            for (lfs_size_t i = 0; i < bd->cfg->code_size; i++) {
+            // location X_j=g^j where X_j^-1 is a root of our
+            // error-locator, Λ(X_j^-1) = 0
+            for (lfs_size_t j = 0; j < bd->cfg->code_size; j++) {
                 // map the error location to the multiplicative ring
                 //
-                // let X_i = g^i
+                // let X_j = g^j
                 //
-                uint8_t x_i = ramrsbd_gf_pow(
+                uint8_t x_j = ramrsbd_gf_pow(
                         RAMRSBD_GF_G,
-                        bd->cfg->code_size-1-i);
-                uint8_t x_i_ = ramrsbd_gf_div(1, x_i);
+                        bd->cfg->code_size-1-j);
+                uint8_t x_j_ = ramrsbd_gf_div(1, x_j);
 
-                // is X_i a root of our error-locator?
+                // is X_j a root of our error-locator?
                 //
-                // does Λ(X_i^-1) = 0?
+                // does Λ(X_j^-1) = 0?
                 //
                 if (ramrsbd_gf_p_eval(
                             bd->λ, bd->cfg->ecc_size,
-                            x_i_)
+                            x_j_)
                         != 0) {
                     continue;
                 }
 
                 // found an error location, now find its magnitude
                 //
-                //                Ω(X_i^-1)
-                // let Y_i = X_i ----------
-                //               Λ'(X_i^-1) 
+                //                Ω(X_j^-1)
+                // let Y_j = X_j ----------
+                //               Λ'(X_j^-1)
                 //
-                uint8_t y_i = ramrsbd_gf_mul(
-                        x_i,
+                uint8_t y_j = ramrsbd_gf_mul(
+                        x_j,
                         ramrsbd_gf_div(
                             ramrsbd_gf_p_eval(
                                 bd->ω, bd->cfg->ecc_size,
-                                x_i_),
+                                x_j_),
                             ramrsbd_gf_p_deval(
                                 bd->λ, bd->cfg->ecc_size,
-                                x_i_)));
+                                x_j_)));
 
                 // found error location and magnitude, now we can fix it!
-                bd->c[i] ^= y_i;
+                bd->c[j] ^= y_j;
             }
 
             // calculate syndromes again to make sure we found all errors
@@ -461,7 +465,7 @@ int ramrsbd_prog(const struct lfs_config *cfg, lfs_block_t block,
 
         // calculate ecc of size n
         //
-        // let C(x) = M(x) x^n + (M(x) x^n % P(x))
+        // let C(x) = M(x) x^n + (M(x) x^n mod P(x))
         //
         // note this makes C(x) divisible by P(x)
         //
