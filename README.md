@@ -1301,7 +1301,7 @@ error-correction is perfect.
 Heavy math aside, there are a couple minor implementation tricks worth
 noting:
 
-1. Truncate the generator polynomial to `ecc_size`.
+1. Truncating the generator polynomial to `ecc_size`.
 
    When we expand the generator polynomial, it gives us a polynomial
    with $n+1$ terms, where $n$ is our `ecc_size`. This is a bit annoying
@@ -1319,9 +1319,9 @@ noting:
 
    This is implemented in [ramrsbd_gf_p_divmod1][ramrsbd_gf_p_divmod1],
    and has the extra benefit of being able to skip the normalization step
-   in [synthetic division][synthetic division].
+   during [synthetic division][synthetic division].
 
-2. Store the generator polynomial in ROM.
+2. Storing the generator polynomial in ROM.
 
    This isn't actually implemented in ramrsbd (it's a bit annoying
    API-wise), but you don't really need to recompute the generator
@@ -1344,7 +1344,35 @@ noting:
    };
    ```
 
-3. Minimizing the number of buffers.
+3. Minimizing the number of polynomial buffers.
+
+   Reed-Solomon has quite a few polynomials flying around:
+
+   - $C(x)$ - Codeword buffer - `code_size` bytes
+   - $P(x)$ Generator polynomial - `ecc_size` bytes (truncated)
+   - $S_i$ - Syndrome buffer - `ecc_size` bytes
+   - $\Lambda(x)$ - Error-locator polynomial - `ecc_size/2+1` (`<=ecc_size`) bytes
+   - $C(i)$ - Connection polynomial - `ecc_size/2+1` (`<=ecc_size`) bytes
+   - $\Omega(x)$ - Error-evaluator polynomial - `ecc_size/2` (`<=ecc_size`) bytes
+   - $\Lambda'(x)$ - Derivative of the error-locator polynomial - `ecc_size/2` (`<=ecc_size`) bytes
+
+   These get a bit annoying in a malloc-less system.
+
+   Fortunately there are a couple places we can reuse buffers:
+
+   1. The connection polynomial $C(i)$ is only needed for
+      Berlekamp-Massey and we can throw it away as soon as the
+      error-locator $\Lambda(x)$ is found.
+
+   2. We only need the syndrome buffer $S_i$ to find $\Lambda(x)$,
+      $\Omega(x)$, and $\Lambda'(x)$. After that we have everything we
+      need to start fixing errors.
+
+   By sharing these buffers with polynomials computed later, such as the
+   error-evaluator $\Omega(x)$ and derivative of the error-locator
+   $\Lambda'(x)$, we can reduce the total number of buffers needed at
+   once down to 1 `code_size` buffer and 4 `ecc_size` buffers (3 if the
+   generator polynomial is stored in ROM).
 
 4. Fused derivative evaluation.
 
@@ -1357,4 +1385,5 @@ And some caveats:
 
 2. Limited to 255 byte codewords - the non-zero elements of GF(256).
 
-3. Support for known-location errors, "erasures", exercise for reader.
+3. Support for known-location "erasures" is left as an exercise for
+   reader.
