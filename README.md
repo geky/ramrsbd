@@ -1331,7 +1331,18 @@ noting:
    precomputing and storing the generator polynomial in ROM will save a
    couple (`ecc_size`) bytes of RAM.
 
-   TODO add a script?
+   [rs-poly.py][rs-poly.py] can help with this:
+
+   ``` bash
+   $ ./rs-poly.py 8
+   // generator polynomial for ecc_size=8
+   //
+   // P(x) = prod_i^n-1 (x - g^i)
+   //
+   static const uint8_t RAMRSBD_P[8] = {
+       0xff, 0x0b, 0x51, 0x36, 0xef, 0xad, 0xc8, 0x18,
+   };
+   ```
 
 3. Minimizing the number of buffers.
 
