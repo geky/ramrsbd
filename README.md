@@ -1296,3 +1296,54 @@ Unless of course we had enough errors to end up overcorrecting to a
 different codeword, but there's not much we can do in that case. No
 error-correction is perfect.
 
+## Tricks
+
+Heavy math aside, there are a couple minor implementation tricks worth
+noting:
+
+1. Truncate the generator polynomial to `ecc_size`.
+
+   When we expand the generator polynomial, it gives us a polynomial
+   with $n+1$ terms, where $n$ is our `ecc_size`. This is a bit annoying
+   since `ecc_size` is often a power-of-two:
+
+   <p align="center">
+   <img
+       alt="P(x) = \prod_{i=0}^{n-1} \left(x - g^i\right) = \left(x-1\right)\left(x-g\right)\cdots\left(x-g^{n-1}\right)"
+       src="https://latex.codecogs.com/svg.image?P%28x%29%20%3d%20%5cprod_%7bi%3d%30%7d%5e%7bn%2d%31%7d%20%5cleft%28x%20%2d%20g%5ei%5cright%29%20%3d%20%5cleft%28x%2d%31%5cright%29%5cleft%28x%2dg%5cright%29%5ccdots%5cleft%28x%2dg%5e%7bn%2d%31%7d%5cright%29"
+   >
+   </p>
+
+   Fortunately the first term is always 1, so just like our CRC
+   polynomials, we can just not store it and make the leading 1 implicit.
+
+   This is implemented in [ramrsbd_gf_p_divmod1][ramrsbd_gf_p_divmod1],
+   and has the extra benefit of being able to skip the normalization step
+   in [synthetic division][synthetic division].
+
+2. Store the generator polynomial in ROM.
+
+   This isn't actually implemented in ramrsbd (it's a bit annoying
+   API-wise), but you don't really need to recompute the generator
+   polynomial every time you initialize the block device.
+
+   If you only need to support a fixed set of block device geometries,
+   precomputing and storing the generator polynomial in ROM will save a
+   couple (`ecc_size`) bytes of RAM.
+
+   TODO add a script?
+
+3. Minimizing the number of buffers.
+
+4. Fused derivative evaluation.
+
+## Caveats
+
+And some caveats:
+
+1. For _any_ error-correcting code, attempting to _correct_ errors
+   reduces the code's ability to _detect_ errors.
+
+2. Limited to 255 byte codewords - the non-zero elements of GF(256).
+
+3. Support for known-location errors, "erasures", exercise for reader.
