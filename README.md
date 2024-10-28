@@ -118,7 +118,7 @@ Before we get into how the algorithm works, a couple words of warning:
 ## How it works
 
 Like CRCs, Reed-Solomon codes are implemented by concatenating the
-message with the remainder after division by a predefined "generator
+message with the remainder after division by a predetermined "generator
 polynomial".
 
 However, two important differences:
@@ -183,8 +183,8 @@ code for codeword $C(x)$ given a message $M(x)$:
 
 <p align="center">
 <img
-    alt="C(x) = M(x) x^n - (M(x) x^n \bmod P(x))"
-    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20M%28x%29%20x%5en%20%2d%20%28M%28x%29%20x%5en%20%5cbmod%20P%28x%29%29"
+    alt="C(x) = M(x) x^n - \left(M(x) x^n \bmod P(x)\right)"
+    src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20M%28x%29%20x%5en%20%2d%20%5cleft%28M%28x%29%20x%5en%20%5cbmod%20P%28x%29%5cright%29"
 >
 </p>
 
