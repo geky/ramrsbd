@@ -56,7 +56,7 @@ A quick comparison of current ram-ecc-bds:
 |            | code   | tables | stack | buffers  | runtime                  |
 |:-----------|-------:|-------:|------:|---------:|-------------------------:|
 | ramcrc32bd |  940 B |   64 B |  88 B |      0 B |      $O\left(n^e\right)$ |
-| ramrsbd    | 1430 B |  512 B | 128 B | n + 4e B | $O\left(ne + e^2\right)$ |
+| ramrsbd    | 1506 B |  512 B | 128 B | n + 4e B | $O\left(ne + e^2\right)$ |
 
 See also:
 
