@@ -1304,8 +1304,7 @@ noting:
 1. Truncating the generator polynomial to `ecc_size`.
 
    When we expand the generator polynomial, it gives us a polynomial
-   with $n+1$ terms, where $n$ is our `ecc_size`. This is a bit annoying
-   since `ecc_size` is often a power-of-two:
+   with $n+1$ terms, where $n$ is our `ecc_size`:
 
    <p align="center">
    <img
@@ -1314,12 +1313,16 @@ noting:
    >
    </p>
 
-   Fortunately the first term is always 1, so just like our CRC
-   polynomials, we can just not store it and make the leading 1 implicit.
+   This gets a bit annoying since `ecc_size` is often a power-of-two,
 
-   This is implemented in [ramrsbd_gf_p_divmod1][ramrsbd_gf_p_divmod1],
-   and has the extra benefit of being able to skip the normalization step
-   during [synthetic division][synthetic division].
+   Fortunately, because of math, the first term will always be a 1. So
+   just like with CRC polynomials, we can make the leading 1 implicit and
+   not bother storing it.
+
+   Division with an implicit 1 is implemented in
+   [ramrsbd_gf_p_divmod1][ramrsbd_gf_p_divmod1], and has the extra
+   benefit of being able to skip the normalization step during
+   [synthetic division][synthetic division].
 
 2. Storing the generator polynomial in ROM.
 
