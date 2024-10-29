@@ -56,8 +56,8 @@ int ramrsbd_create(const struct lfs_config *cfg,
     memset(bd->buffer, 0, bd->cfg->erase_size * bd->cfg->erase_count);
 
     // allocate codeword buffer?
-    if (bd->cfg->math_buffer) {
-        bd->c = (uint8_t*)bd->cfg->math_buffer;
+    if (bd->cfg->code_buffer) {
+        bd->c = (uint8_t*)bd->cfg->code_buffer;
     } else {
         bd->c = lfs_malloc(bd->cfg->code_size);
         if (!bd->c) {
@@ -66,10 +66,9 @@ int ramrsbd_create(const struct lfs_config *cfg,
         }
     }
 
-    // allocate generator polynomial?
-    if (bd->cfg->math_buffer) {
-        bd->p = (uint8_t*)bd->cfg->math_buffer
-                + bd->cfg->code_size;
+    // allocate generator polynomial buffer?
+    if (bd->cfg->p_buffer) {
+        bd->p = (uint8_t*)bd->cfg->p_buffer;
     } else {
         bd->p = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->p) {
@@ -79,10 +78,8 @@ int ramrsbd_create(const struct lfs_config *cfg,
     }
 
     // allocate syndrome buffer?
-    if (bd->cfg->math_buffer) {
-        bd->s = (uint8_t*)bd->cfg->math_buffer
-                + bd->cfg->code_size
-                + bd->cfg->ecc_size;
+    if (bd->cfg->s_buffer) {
+        bd->s = (uint8_t*)bd->cfg->s_buffer;
     } else {
         bd->s = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
@@ -91,12 +88,9 @@ int ramrsbd_create(const struct lfs_config *cfg,
         }
     }
 
-    // allocate error-locator buffer?
-    if (bd->cfg->math_buffer) {
-        bd->λ = (uint8_t*)bd->cfg->math_buffer
-                + bd->cfg->code_size
-                + bd->cfg->ecc_size
-                + bd->cfg->ecc_size;
+    // allocate error-locator polynomial buffer?
+    if (bd->cfg->λ_buffer) {
+        bd->λ = (uint8_t*)bd->cfg->λ_buffer;
     } else {
         bd->λ = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
@@ -105,13 +99,9 @@ int ramrsbd_create(const struct lfs_config *cfg,
         }
     }
 
-    // allocate error-locator derivative buffer?
-    if (bd->cfg->math_buffer) {
-        bd->ω = (uint8_t*)bd->cfg->math_buffer
-                + bd->cfg->code_size
-                + bd->cfg->ecc_size
-                + bd->cfg->ecc_size
-                + bd->cfg->ecc_size;
+    // allocate error-evaluator polynomial buffer?
+    if (bd->cfg->ω_buffer) {
+        bd->ω = (uint8_t*)bd->cfg->ω_buffer;
     } else {
         bd->ω = lfs_malloc(bd->cfg->ecc_size);
         if (!bd->s) {
@@ -156,11 +146,19 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
     if (!bd->cfg->buffer) {
         lfs_free(bd->buffer);
     }
-    if (!bd->cfg->math_buffer) {
+    if (!bd->cfg->code_buffer) {
         lfs_free(bd->c);
+    }
+    if (!bd->cfg->p_buffer) {
         lfs_free(bd->p);
+    }
+    if (!bd->cfg->s_buffer) {
         lfs_free(bd->s);
+    }
+    if (!bd->cfg->λ_buffer) {
         lfs_free(bd->λ);
+    }
+    if (!bd->cfg->ω_buffer) {
         lfs_free(bd->ω);
     }
     RAMRSBD_TRACE("ramrsbd_destroy -> %d", 0);
