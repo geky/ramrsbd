@@ -67,7 +67,9 @@ int ramrsbd_create(const struct lfs_config *cfg,
     }
 
     // allocate generator polynomial buffer?
-    if (bd->cfg->p_buffer) {
+    if (bd->cfg->p) {
+        bd->p = (uint8_t*)bd->cfg->p;
+    } else if (bd->cfg->p_buffer) {
         bd->p = (uint8_t*)bd->cfg->p_buffer;
     } else {
         bd->p = lfs_malloc(bd->cfg->ecc_size);
@@ -110,29 +112,31 @@ int ramrsbd_create(const struct lfs_config *cfg,
         }
     }
 
-    // calculate generator polynomial
-    //
-    // P(x) = prod_i^n-1 (x - g^i)
-    //
-    // the important property of P(x) is that it evaluates to 0
-    // at every x=g^i for i < n
-    //
-    // normally P(x) needs n+1 terms, but the leading term is always 1,
-    // so we can make it implicit
-    //
+    if (!bd->cfg->p) {
+        // calculate generator polynomial
+        //
+        // P(x) = prod_i^n-1 (x - g^i)
+        //
+        // the important property of P(x) is that it evaluates to 0
+        // at every x=g^i for i < n
+        //
+        // normally P(x) needs n+1 terms, but the leading term is
+        // always 1, so we can make it implicit
+        //
 
-    // let P(x) = 1
-    memset(bd->p, 0, bd->cfg->ecc_size);
-    bd->p[bd->cfg->ecc_size-1] = 1;
+        // let P(x) = 1
+        memset(bd->p, 0, bd->cfg->ecc_size);
+        bd->p[bd->cfg->ecc_size-1] = 1;
 
-    for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
-        // let R(x) = x - g^i
-        uint8_t r[2] = {1, ramrsbd_gf_pow(RAMRSBD_GF_G, i)};
+        for (lfs_size_t i = 0; i < bd->cfg->ecc_size; i++) {
+            // let R(x) = x - g^i
+            uint8_t r[2] = {1, ramrsbd_gf_pow(RAMRSBD_GF_G, i)};
 
-        // let P(x) = P(x) * R(x)
-        ramrsbd_gf_p_mul(
-                bd->p, bd->cfg->ecc_size,
-                r, 2);
+            // let P(x) = P(x) * R(x)
+            ramrsbd_gf_p_mul(
+                    bd->p, bd->cfg->ecc_size,
+                    r, 2);
+        }
     }
 
     RAMRSBD_TRACE("ramrsbd_create -> %d", 0);
@@ -149,7 +153,7 @@ int ramrsbd_destroy(const struct lfs_config *cfg) {
     if (!bd->cfg->code_buffer) {
         lfs_free(bd->c);
     }
-    if (!bd->cfg->p_buffer) {
+    if (!bd->cfg->p && !bd->cfg->p_buffer) {
         lfs_free(bd->p);
     }
     if (!bd->cfg->s_buffer) {

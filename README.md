@@ -1326,15 +1326,15 @@ noting:
 
 2. Storing the generator polynomial in ROM.
 
-   This isn't actually implemented in ramrsbd (it's a bit annoying
-   API-wise), but you don't really need to recompute the generator
-   polynomial every time you initialize the block device.
+   We don't really need to recompute the generator polynomial every time
+   we initialize the block device, it's just convenient API-wise when
+   `ecc_size` is unknown.
 
    If you only need to support a fixed set of block device geometries,
    precomputing and storing the generator polynomial in ROM will save a
    couple (`ecc_size`) bytes of RAM.
 
-   [rs-poly.py][rs-poly.py] can help with this:
+   [rs-poly.py][rs-poly.py] can help generate the generator polynomial:
 
    ``` bash
    $ ./rs-poly.py 8
@@ -1346,6 +1346,12 @@ noting:
        0xff, 0x0b, 0x51, 0x36, 0xef, 0xad, 0xc8, 0x18,
    };
    ```
+
+   Which can be provided to ramrsbd's [p][p] config option to avoid
+   allocating the `p_buffer` in RAM.
+
+   Unfortunately we still pay the code cost for generating the generator
+   polynomial, which is difficult to avoid with the current API.
 
 3. Minimizing the number of polynomial buffers.
 

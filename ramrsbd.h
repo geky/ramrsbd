@@ -55,6 +55,14 @@ struct ramrsbd_config {
     // -1 disables error correction and errors on any errors.
     lfs_ssize_t error_correction;
 
+    // Optional precomputed generator polynomial.
+    //
+    // See the rs-poly.py script to help generate this.
+    //
+    // By default p is computed as needed for the configured ecc_size.
+    // Must be ecc_size.
+    const uint8_t *p;
+
     // Optional statically allocated buffer for the block device.
     void *buffer;
 
@@ -64,6 +72,8 @@ struct ramrsbd_config {
     void *code_buffer;
 
     // Optional statically allocated generator polynomial buffer.
+    //
+    // Not needed if a precomputed p is provided.
     //
     // Must be ecc_size.
     void *p_buffer;
