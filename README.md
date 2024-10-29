@@ -1379,6 +1379,28 @@ noting:
 
 4. Fused derivative evaluation.
 
+   The formal derivative is a funny operation.
+
+   Operating on only one term at a time, the formal derivative can be
+   easily computed lazily, such as when actually evaluating the
+   polynomial.
+
+   We already need to keep the error-locator $\Lambda(x)$ around to, you
+   know, locate the errors, so evaluating the derivative of the
+   error-locator $\Lambda'(x)$ directly from $\Lambda(x)$ has the
+   potential to save a buffer. Reducing the number of buffers required to
+   correct errors in the last step from 3 to 2.
+
+   This fused derivative evaluation is implemented in
+   [ramrsbd_gf_p_deval][ramrsbd_gf_p_deval], using a slightly tweaked
+   [Horner's method][horners-method].
+
+   Unfortunately this doesn't actually save us anything. We still need at
+   least 3 buffers for Berlekamp-Massey ( $S_i$, $\Lambda(i)$, and
+   $C(i)$ ). But it also doesn't really cost us anything, cleans up the
+   code a little bit, and lets us avoid clobbering the syndrome buffer
+   $S_i$ which may be useful for debugging.
+
 ## Caveats
 
 And some caveats:
