@@ -1417,6 +1417,23 @@ And some caveats:
 1. For any error-correcting code, attempting to **correct** errors
    reduces the code's ability to **detect** errors.
 
+   In Reed-Solomon's case, for $n$ bytes of ECC, we can detect up to
+   $n$ byte-errors, but only correct up to
+   $\left\lfloor\frac{n}{2}\right\rfloor$ byte-errors. Attempting to
+   correct more errors can cause us to end up with a valid, but wrong,
+   codeword.
+
+   In practice this isn't that big of a problem. Fewer byte-errors are
+   more common, and correcting byte-errors is usually more useful. At
+   $n+1$ byte-errors you're going to end up with undetectable errors
+   anyways.
+
+   Still, it's good to be aware of this tradeoff.
+
+   ramrsbd's [`error_correction`][error-correction] config option lets
+   you control exactly how many byte-errors to attempt to repair in case
+   better detection is more useful.
+
 2. Limited to 255 byte codewords - the non-zero elements of GF(256).
 
 3. Support for known-location "erasures" left as an exercise for the
