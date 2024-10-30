@@ -1320,7 +1320,7 @@ noting:
 
    Fortunately, because of math, the first term will always be a 1. So
    just like with CRC polynomials, we can make the leading 1 implicit and
-   not bother storing it.
+   not bother storing it in memory.
 
    Division with an implicit 1 is implemented in
    [ramrsbd_gf_p_divmod1][ramrsbd_gf_p_divmod1], and has the extra
@@ -1414,10 +1414,240 @@ noting:
 
 And some caveats:
 
-1. For _any_ error-correcting code, attempting to _correct_ errors
-   reduces the code's ability to _detect_ errors.
+1. For any error-correcting code, attempting to **correct** errors
+   reduces the code's ability to **detect** errors.
 
 2. Limited to 255 byte codewords - the non-zero elements of GF(256).
 
-3. Support for known-location "erasures" is left as an exercise for
+3. Support for known-location "erasures" left as an exercise for the
    reader.
+
+   All of the above math assumes we don't know the location of errors,
+   which is usually the case for block devices.
+
+   But it turns out if we _do_ know the location of errors, via parity
+   bits or some other side-channel, we can do quite a bit better. We
+   usually call these known-location errors "erasures".
+
+   With Reed-Solomon, each unknown-location error requires 2 bytes of ECC
+   to find and repair, while known-location erasures require only 1 byte
+   of ECC to repair. You can even mix and match $e$ errors and $f$
+   erasures as long as you have $n$ bytes of ECC such that:
+
+   <p align="center">
+   <img
+       alt="2e + f \le n"
+       src="https://latex.codecogs.com/svg.image?%32e%20%2b%20f%20%5cle%20n"
+   >
+   </p>
+
+   This isn't implemented in ramrsbd, but, _in theory_, the math isn't
+   too difficult to extend.
+
+   First note we can split $\Lambda(x)$ into a separate error-locator
+   poylnomial $\Lambda_E(x)$ and erasure-locator polynomial
+   $\Lambda_F(x)$:
+
+   <p align="center">
+   <img
+       alt="\Lambda(x) = \Lambda_E(x) \Lambda_F(x)"
+       src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cLambda_E%28x%29%20%5cLambda_F%28x%29"
+   >
+   </p>
+
+   We know the location of the known-location erasures, so the
+   erasure-locator $\Lambda_F(x)$ is trivial to calculate:
+
+   <p align="center">
+   <img
+       alt="\Lambda_F(x) = \prod_{j \in F} \left(1 - X_j x\right)"
+       src="https://latex.codecogs.com/svg.image?%5cLambda_F%28x%29%20%3d%20%5cprod_%7bj%20%5cin%20F%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
+   >
+   </p>
+
+   Before we can find the error-locator polynomial $\Lambda_E(x)$, we
+   need to modify our syndromes the hide the effects of the
+   erasure-locator polynomial. These are often called the Forney
+   syndromes $S_{Fi}$:
+
+   <p align="center">
+   <img
+       alt="S_F(x) = S(x) \Lambda_F(x) \bmod x^n"
+       src="https://latex.codecogs.com/svg.image?S_F%28x%29%20%3d%20S%28x%29%20%5cLambda_F%28x%29%20%5cbmod%20x%5en"
+   >
+   </p>
+
+   Note that the Forney syndromes $S_{Fi}$ sill satisfy the equation for
+   $\Omega(x)$:
+
+   <p align="center">
+   <img
+       alt="\begin{aligned} \Omega(x) &= S(x)\Lambda(x) \bmod x^n \\ &= S(x)\Lambda_E(x)\Lambda_F(x) \bmod x^n \\ &= S_F(x)\Lambda_E(x) \bmod x^n \end{aligned}"
+       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cOmega%28x%29%20%26%3d%20S%28x%29%5cLambda%28x%29%20%5cbmod%20x%5en%20%5c%5c%20%26%3d%20S%28x%29%5cLambda_E%28x%29%5cLambda_F%28x%29%20%5cbmod%20x%5en%20%5c%5c%20%26%3d%20S_F%28x%29%5cLambda_E%28x%29%20%5cbmod%20x%5en%20%5cend%7baligned%7d"
+   >
+   </p>
+
+   We can then use Berlekamp-Massey with the Forney syndromes $S_{Fi}$ to
+   find the error-locator polynomial $\Lambda_E(x)$.
+
+   Combining the error-locator polynomial $\Lambda_E(x)$ and the
+   erasure-locator polynomial $\Lambda_F(x)$ gives us the creatively
+   named error-and-erasure-locator-polynomial $\Lambda(x)$, which
+   contains everything we need to know to find the location of both
+   errors and erasures:
+
+   <p align="center">
+   <img
+       alt="\Lambda(x) = \Lambda_E(x) \Lambda_F(x)"
+       src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cLambda_E%28x%29%20%5cLambda_F%28x%29"
+   >
+   </p>
+
+   At this point we can continue Reed-Solomon as normal, finding the
+   error/easures locations where $\Lambda(X_j^{-1})=0$, and repairing
+   them with Forney's algorithm,
+   $Y_j = X_j \frac{\Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}$:
+
+   <p align="center">
+   <img
+       alt="C(x) = C'(x) - \sum_{j \in E \cup F} Y_j x^j"
+       src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%20%5ccup%20F%7d%20Y_j%20x%5ej"
+   >
+   </p>
+
+
+    vvv TODO vvv
+
+the algorithm as normal
+
+, which tells
+   us everything we need to know to find the location of errors and
+   erasures:
+
+
+   We can then continue the algorithm as normal, finding errors/erasures
+   where $\Lambda(X_j^{-1}) = 0$, and repairing them with Forney's
+   algorithm.
+
+   
+
+
+
+
+   vvv TODO vvv
+
+   Which has all of the properties of t
+
+
+
+   
+
+   Use Berlekamp-Massey to find the error-locator polynomial
+   $\Lambda_E(x)$ from the Forney syndromes $S_{Ei}$.
+
+
+
+   
+
+
+   need to sort of hide the effects of our erasures from the 
+
+   In order to find the error-locator polynomial $\Lambda_E(x)$, 
+
+
+
+
+
+   Renaming $\Lambda(x)$ to the error-and-erasure-locator polynomial, we
+   can 
+
+   First note we can split the error-locator polynomial $\Lambda(x)$ into
+   separate 
+
+   
+
+
+
+
+
+
+
+   vvv TODO vvv
+
+   
+
+   With Reed-Solomon, each unknown-location error requires 2 bytes of ECC
+   to find and repair, but each known-location error, usually called
+   "erasures", require only 1 byte of ECC to correct.
+
+
+
+
+
+
+   All of the above math assumes we don't know the location of errors,
+   since this is usually the case for block devices, and requires $2e$
+   bytes of `ecc_size` to find $e$ errors.
+
+   But if we know the location of errors, via parity bits or other
+   side-channels, we can actually do a bit better and find $e$ errors
+   with only $e$ bytes of `ecc_size`. We usually call these "erasures".
+
+   You can even mix and match errors and erasures as long as you have
+   enough `ecc_size`, with each error needing 2 bytes of `ecc_size`, and
+   each erasure needing 1 bytes of `ecc_size`.
+
+   TODO
+
+   Find the erasure-locator polynomial $\Lambda_F(x)$:
+   
+   <p align="center">
+   <img
+       alt="\Lambda_F(x) = \prod_{j \in F} \left(1 - X_j x\right)"
+       src="https://latex.codecogs.com/svg.image?%5cLambda_F%28x%29%20%3d%20%5cprod_%7bj%20%5cin%20F%7d%20%5cleft%28%31%20%2d%20X_j%20x%5cright%29"
+   >
+   </p>
+   
+   Note:
+   
+   <p align="center">
+   <img
+       alt="\Lambda(x) = \Lambda_E(x) \Lambda_F(x)"
+       src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cLambda_E%28x%29%20%5cLambda_F%28x%29"
+   >
+   </p>
+   
+   Find the Forney syndromes $S_{Ei}$:
+   
+   <p align="center">
+   <img
+       alt="S_E(x) = S(x) \Lambda_F(x) \bmod x^n"
+       src="https://latex.codecogs.com/svg.image?S_E%28x%29%20%3d%20S%28x%29%20%5cLambda_F%28x%29%20%5cbmod%20x%5en"
+   >
+   </p>
+   
+   Note:
+   
+   <p align="center">
+   <img
+       alt="\begin{aligned} \Omega(x) &= S(x)\Lambda(x) \bmod x^n \\ &= S(x)\Lambda_E(x)\Lambda_F(x) \bmod x^n \\ &= S_F(x)\Lambda_E(x) \bmod x^n \end{aligned}"
+       src="https://latex.codecogs.com/svg.image?%5cbegin%7baligned%7d%20%5cOmega%28x%29%20%26%3d%20S%28x%29%5cLambda%28x%29%20%5cbmod%20x%5en%20%5c%5c%20%26%3d%20S%28x%29%5cLambda_E%28x%29%5cLambda_F%28x%29%20%5cbmod%20x%5en%20%5c%5c%20%26%3d%20S_F%28x%29%5cLambda_E%28x%29%20%5cbmod%20x%5en%20%5cend%7baligned%7d"
+   >
+   </p>
+   
+   Use Berlekamp-Massey to find the error-locator polynomial
+   $\Lambda_E(x)$ from the Forney syndromes $S_{Ei}$.
+   
+   
+   Combine:
+   
+   <p align="center">
+   <img
+       alt="\Lambda(x) = \Lambda_E(x) \Lambda_F(x)"
+       src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%5cLambda_E%28x%29%20%5cLambda_F%28x%29"
+   >
+   </p>
+   
+   And continue as normal, finding $X_j$ where $\Lambda(X_j^{-1})=0$
+   and solving for $Y_j$ where
+   $Y_j = X_j \frac{\Omega(X_j^{-1})}{\Lambda'(X_j^{-1})}$.
