@@ -1436,11 +1436,50 @@ And some caveats:
 
 2. Limited to 255 byte codewords - the non-zero elements of GF(256).
 
+   An important step in Reed-Solomon is mapping each possible error
+   location to a non-zero element of our finite field $X_j=g^j$.
+   Unfortunately our finite-field is, well, finite, so there's only so
+   many non-zero elements we can use before error-locations start to
+   alias.
+
+   This gives us a maximum codeword size of 255 bytes in GF(256),
+   including the bytes used for ECC. A bit annoying, but math is math.
+
+   In theory you can increase the maximum codeword size by using a larger
+   finite-field, but this gets a bit tricky because the log/pow table
+   approach used in ramrsbd stops being practical. 512 bytes of tables
+   for GF(256) is fine, but 128 KiBs of tables for GF(2^16)? Not so
+   much...
+
+   1. If you have [carryless-multiplication][clmul] hardware available,
+      GF(2^n) multiplication can be implemented efficiently by combining
+      multiplication and [Barret reduction][barret-reduction].
+
+      Division can then be implemented on top of multiplication by
+      leveraging the fact that $a^{2^n-2} = a^{-1}$ for any element $a$
+      in GF(2^n). [Binary exponentiation][binary-exponentiation] can make
+      this somewhat efficient.
+
+   2. In the same way GF(256) is defined as an
+      [extension field][extension-field] of GF(2), we can define GF(2^16)
+      as an extension field of GF(256), where each element is a 2 byte
+      polynomial containing digits in GF(256).
+
+      This can be convenient if you already need GF(256) tables for other
+      parts of the codebase.
+
+   Or, a simpler alternative, you can just pack multiple "physical"
+   codewords into one "logical" codeword.
+
+   You could even consider interleaving the physical codewords if you
+   want to maintain the systematic encoding or are trying to protect
+   against specific error patterns.
+
 3. Support for known-location "erasures" left as an exercise for the
    reader.
 
    All of the above math assumes we don't know the location of errors,
-   which is usually the case for block devices.
+   which is the most common case for block devices.
 
    But it turns out if we _do_ know the location of errors, via parity
    bits or some other side-channel, we can do quite a bit better. We
