@@ -1586,3 +1586,19 @@ And some caveats:
        src="https://latex.codecogs.com/svg.image?C%28x%29%20%3d%20C%27%28x%29%20%2d%20%5csum_%7bj%20%5cin%20E%20%5ccup%20F%7d%20Y_j%20x%5ej"
    >
    </p>
+
+## References
+
+- [Massey, J. L. - Shift-register synthesis and BCH decoding][massey-srsbchd]
+- [Gill, J. - EE387 Notes #7][gill-notes7]
+- [Truong, T. K., Hsu, I. S., Eastman, W. L., Reed, I. S. - A Simplified Procedure for Correcting Both Errors and Erasures of a Reed-Solomon Code Using the Euclidean Algorithm][truong-spcbeerscuea]
+
+- [Wikipedia - Reed Solomon][wikipedia-rs]
+- [Wikiversity - Reed Solomon for coders][wikiversity-rs]
+
+[massey-srsbchd]: http://crypto.stanford.edu/~mironov/cs359/massey.pdf
+[gill-notes7]: https://web.archive.org/web/20140630172526/http://web.stanford.edu/class/ee387/handouts/notes7.pdf
+[truong-spcbeerscuea]: https://ntrs.nasa.gov/api/citations/19880003316/downloads/19880003316.pdf
+[wikipedia-rs]: https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction
+[wikiversity-rs]: https://en.wikiversity.org/wiki/Reed%E2%80%93Solomon_codes_for_coders
+
