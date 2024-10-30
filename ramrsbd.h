@@ -29,10 +29,14 @@ extern "C"
 struct ramrsbd_config {
     // Size of a codeword in bytes.
     //
+    // Limited to at most 255 bytes (non-zero elements in GF(256)).
+    //
     // Note code_size = read_size and prog_size + ecc_size.
     lfs_size_t code_size;
 
     // Size of the error-correcting code in bytes.
+    //
+    // ramrsbd can reliably correct up to floor(ecc_size/2) byte errors.
     //
     // Note code_size = read_size and prog_size + ecc_size.
     lfs_size_t ecc_size;

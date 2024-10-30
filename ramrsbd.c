@@ -37,6 +37,10 @@ int ramrsbd_create(const struct lfs_config *cfg,
                     * bd->cfg->ecc_size))
             == 0);
 
+    // There's only 255 non-zero elements in GF(256), so ramrsbd is limited
+    // to at most 255 byte codewords
+    LFS_ASSERT(bd->cfg->code_size <= 255);
+
     // Make sure the requested error correction is possible
     LFS_ASSERT(bd->cfg->error_correction <= 0
             || (lfs_size_t)bd->cfg->error_correction <= bd->cfg->ecc_size/2);
