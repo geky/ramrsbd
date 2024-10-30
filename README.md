@@ -48,8 +48,11 @@ bytes instead of bits, they are both flexible and powerful, capable of
 detecting and correcting a configurable number of byte errors
 efficiently.
 
-The only tradeoff is they are quite a bit more complex mathematically,
-which adds code and RAM cost.
+Assuming `ecc_size` bytes of ECC, ramrsbd can correct `floor(ecc_size/2)`
+byte errors in up to 255 byte codewords (yes, 255 bytes, not 256 :/).
+
+The main tradeoff is they are quite a bit more complex mathematically,
+which adds some code, RAM, and brain cost.
 
 A quick comparison of current ram-ecc-bds:
 
@@ -66,7 +69,7 @@ See also:
 ## RAM?
 
 Right now, [littlefs's][littlefs] block device API is limited in terms of
-composability. It would be great to fix this on a major API change, but
+composability. While it would be great to fix this on a major API change,
 in the meantime, a RAM-backed block device provides a simple example of
 error-correction that users may be able to reimplement in their own
 block devices.
