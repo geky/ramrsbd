@@ -1304,10 +1304,11 @@ error-correction is perfect.
 Heavy math aside, there are a couple minor implementation tricks worth
 noting:
 
-1. Truncating the generator polynomial to `ecc_size`.
+1. Truncate the generator polynomial to `ecc_size`.
 
-   When we expand the generator polynomial, it gives us a polynomial
-   with $n+1$ terms, where $n$ is our `ecc_size`:
+   Calculating the generator polynomial for $n$ bytes of ECC gives us a
+   polynomial with $n+1$ terms. This is a bit annoying since `ecc_size`
+   is often a power-of-two:
 
    <p align="center">
    <img
@@ -1316,22 +1317,20 @@ noting:
    >
    </p>
 
-   This gets a bit annoying since `ecc_size` is often a power-of-two,
-
-   Fortunately, because of math, the first term will always be a 1. So
-   just like with CRC polynomials, we can make the leading 1 implicit and
-   not bother storing it in memory.
+   Fortunately, because of math reasons, the first term will always be 1.
+   So, just like with our CRC polynomials, we can leave off the leading 1
+   and make it implicit.
 
    Division with an implicit 1 is implemented in
-   [ramrsbd_gf_p_divmod1][ramrsbd_gf_p_divmod1], and has the extra
+   [ramrsbd_gf_p_divmod1][ramrsbd_gf_p_divmod1], which has the extra
    benefit of being able to skip the normalization step during
-   [synthetic division][synthetic division].
+   [synthetic division][synthetic division], so that's nice.
 
-2. Storing the generator polynomial in ROM.
+2. Store the generator polynomial in ROM.
 
    We don't really need to recompute the generator polynomial every time
-   we initialize the block device, it's just convenient API-wise when
-   `ecc_size` is unknown.
+   we initialize the block device, it's just convenient API-wise when we
+   don't know `ecc_size`.
 
    If you only need to support a fixed set of block device geometries,
    precomputing and storing the generator polynomial in ROM will save a
@@ -1350,7 +1349,7 @@ noting:
    };
    ```
 
-   Which can be provided to ramrsbd's [p][p] config option to avoid
+   Which can then be provided to ramrsbd's [p][p] config option to avoid
    allocating the `p_buffer` in RAM.
 
    Unfortunately we still pay the code cost for generating the generator
@@ -1358,7 +1357,7 @@ noting:
 
 3. Minimizing the number of polynomial buffers.
 
-   Reed-Solomon has quite a few polynomials flying around:
+   We have quite a few polynomials flying around:
 
    - $C(x)$ - Codeword buffer - `code_size` bytes
    - $P(x)$ Generator polynomial - `ecc_size` bytes (truncated)
@@ -1370,7 +1369,7 @@ noting:
 
    These get a bit annoying in a malloc-less system.
 
-   Fortunately there are a couple places we can reuse buffers:
+   Fortunately, there are a couple places we can reuse buffers:
 
    1. The connection polynomial $C(i)$ is only needed for
       Berlekamp-Massey and we can throw it away as soon as the
@@ -1382,33 +1381,50 @@ noting:
 
    By sharing these buffers with polynomials computed later, such as the
    error-evaluator $\Omega(x)$ and derivative of the error-locator
-   $\Lambda'(x)$, we can reduce the total number of buffers needed at
-   once down to 1 `code_size` buffer and 4 `ecc_size` buffers (3 if the
-   generator polynomial is stored in ROM).
+   $\Lambda'(x)$, we can reduce the total number of buffers needed down
+   to 1 `code_size` buffer and 4 `ecc_size` buffers (3 if the generator
+   polynomial is stored in ROM).
 
 4. Fused derivative evaluation.
 
-   The formal derivative is a funny operation.
+   The formal derivative is a funny operation:
 
-   Operating on only one term at a time, the formal derivative can be
-   easily computed lazily, such as when actually evaluating the
-   polynomial.
+   <p align="center">
+   <img
+       alt="\Lambda(x) = 1 + \sum_{k=1}^e \Lambda_k x^k = 1 + \Lambda_1 x + \Lambda_2 x^2 + \cdots + \Lambda_e x^e"
+       src="https://latex.codecogs.com/svg.image?%5cLambda%28x%29%20%3d%20%31%20%2b%20%5csum_%7bk%3d%31%7d%5ee%20%5cLambda_k%20x%5ek%20%3d%20%31%20%2b%20%5cLambda_%31%20x%20%2b%20%5cLambda_%32%20x%5e%32%20%2b%20%5ccdots%20%2b%20%5cLambda_e%20x%5ee"
+   >
+   </p>
+   
+   <p align="center">
+   <img
+       alt="\Lambda'(x) = \sum_{k=1}^e k \cdot \Lambda_k x^{k-1} = \Lambda_1 + 2 \cdot \Lambda_2 x + \cdots + e \cdot \Lambda_e x^{e-1}"
+       src="https://latex.codecogs.com/svg.image?%5cLambda%27%28x%29%20%3d%20%5csum_%7bk%3d%31%7d%5ee%20k%20%5ccdot%20%5cLambda_k%20x%5e%7bk%2d%31%7d%20%3d%20%5cLambda_%31%20%2b%20%32%20%5ccdot%20%5cLambda_%32%20x%20%2b%20%5ccdots%20%2b%20e%20%5ccdot%20%5cLambda_e%20x%5e%7be%2d%31%7d"
+   >
+   </p>
 
-   We already need to keep the error-locator $\Lambda(x)$ around to, you
-   know, locate the errors, so evaluating the derivative of the
-   error-locator $\Lambda'(x)$ directly from $\Lambda(x)$ has the
-   potential to save a buffer. Reducing the number of buffers required to
-   correct errors in the last step from 3 to 2.
+   Unlike other steps, it's a simple transformation that only affects one
+   term at a time. This makes it easy to apply lazily without needing to
+   copy the original polynomial.
 
-   This fused derivative evaluation is implemented in
-   [ramrsbd_gf_p_deval][ramrsbd_gf_p_deval], using a slightly tweaked
+   We already need to keep the error-locator polynomial $\Lambda(x)$
+   around to, you know, locate the errors. So if we merge the derivative
+   and evaluation of the error-locator into a single operation, we don't
+   actually need to store the derivative of the error-locator
+   $\Lambda'(x)$ as a separate polynomial. In theory reducing the number
+   of buffers needed during error-evaluation from 3 down to 2.
+
+   This sort of fused derivative evaluation is implemented in
+   [ramrsbd_gf_p_deval][ramrsbd_gf_p_deval] via a modified
    [Horner's method][horners-method].
 
-   Unfortunately this doesn't actually save us anything. We still need at
-   least 3 buffers for Berlekamp-Massey ( $S_i$, $\Lambda(i)$, and
-   $C(i)$ ). But it also doesn't really cost us anything, cleans up the
-   code a little bit, and lets us avoid clobbering the syndrome buffer
-   $S_i$ which may be useful for debugging.
+   Unfortunately, we still need at least 3 buffers for Berlekamp-Massey
+   ( $S_i$, $\Lambda(i)$, and $C(i)$ ), so this doesn't actually save us
+   anything.
+
+   But it doesn't really cost us anything either, cleans up the code a
+   little bit, and lets us avoid clobbering the syndrome buffer $S_i$
+   which is useful for debugging.
 
 ## Caveats
 
