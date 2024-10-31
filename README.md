@@ -628,7 +628,7 @@ The actual algorithm itself is relatively simple:
       shift $C(i)$ every step of the algorithm, we usually don't need to
       track $m$ explicitly.
 
-This is all implemented in `ramrsbd_find_l`.
+This is all implemented in `ramrsbd_find_λ`.
 
 #### Solving binary LFSRs for fun
 
@@ -1298,6 +1298,9 @@ our codeword.
 Unless of course we had enough errors to end up overcorrecting to a
 different codeword, but there's not much we can do in that case. No
 error-correction is perfect.
+
+This is all implemented in `ramrsbd_read`, if you're curious what it
+looks like in code.
 
 ## Tricks
 
