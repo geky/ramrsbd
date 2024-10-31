@@ -628,7 +628,7 @@ The actual algorithm itself is relatively simple:
       shift $C(i)$ every step of the algorithm, we usually don't need to
       track $m$ explicitly.
 
-This is all implemented in [ramrsbd_find_l][ramrsbd_find_l].
+This is all implemented in `ramrsbd_find_l`.
 
 #### Solving binary LFSRs for fun
 
@@ -1321,10 +1321,10 @@ noting:
    So, just like with our CRC polynomials, we can leave off the leading 1
    and make it implicit.
 
-   Division with an implicit 1 is implemented in
-   [ramrsbd_gf_p_divmod1][ramrsbd_gf_p_divmod1], which has the extra
-   benefit of being able to skip the normalization step during
-   [synthetic division][w-synthetic-division], so that's nice.
+   Division with an implicit 1 is implemented in `ramrsbd_gf_p_divmod1`,
+   which has the extra benefit of being able to skip the normalization
+   step during [synthetic division][w-synthetic-division], so that's
+   nice.
 
 2. Store the generator polynomial in ROM.
 
@@ -1349,7 +1349,7 @@ noting:
    };
    ```
 
-   Which can then be provided to ramrsbd's [p][p] config option to avoid
+   Which can then be provided to ramrsbd's `p` config option to avoid
    allocating the `p_buffer` in RAM.
 
    Unfortunately we still pay the code cost for generating the generator
@@ -1415,8 +1415,7 @@ noting:
    of buffers needed during error-evaluation from 3 down to 2.
 
    This sort of fused derivative evaluation is implemented in
-   [ramrsbd_gf_p_deval][ramrsbd_gf_p_deval] via a modified
-   [Horner's method][w-horner].
+   `ramrsbd_gf_p_deval` via a modified [Horner's method][w-horner].
 
    Unfortunately, we still need at least 3 buffers for Berlekamp-Massey
    ( $S_i$, $\Lambda(i)$, and $C(i)$ ), so this doesn't actually save us
@@ -1446,9 +1445,9 @@ And some caveats:
 
    Still, it's good to be aware of this tradeoff.
 
-   ramrsbd's [`error_correction`][error-correction] config option lets
-   you control exactly how many byte-errors to attempt to repair in case
-   better detection is more useful.
+   ramrsbd's `error_correction` config option lets you control exactly
+   how many byte-errors to attempt to repair in case better detection is
+   more useful.
 
 2. Limited to 255 byte codewords - the non-zero elements of GF(256).
 
