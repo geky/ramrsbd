@@ -122,7 +122,7 @@ Before we get into how the algorithm works, a couple words of warning:
 
 Like CRCs, Reed-Solomon codes are implemented by concatenating the
 message with the remainder after division by a predetermined "generator
-polynomial".
+polynomial", giving us a [systematic code][w-systematic-code].
 
 However, two important differences:
 
